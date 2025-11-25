@@ -5,70 +5,95 @@ struct ReferralCodeView: View {
     @Environment(\.presentationMode) var presentationMode
     @AppStorage("referallCode") private var text: String = ""
     let onComplete: () -> Void
+
     var body: some View {
-                VStack(alignment: .leading) {
-                    Text(LocalizedStringKey("Do you have a referral code?"))
-                        .fontWeight(.bold)
-                        .font(.largeTitle)
-                        .padding(.bottom, 6)
-                    Text(LocalizedStringKey("You can skip this step."))
-                        .font(.footnote)
-                        .foregroundColor(.gray)
-                        .padding(.bottom, 15)
-                        .fontWeight(.semibold)
-                    
-                    Spacer()
-                    ZStack(alignment: .topLeading){
-                        TextField(LocalizedStringKey("Referral Code"), text: $text)
-                            .scrollContentBackground(.hidden)
-                            .tint(.primary.opacity(0.8))
-                            .padding(.init(top: 10, leading: 16, bottom: 10, trailing: 16))
-                            .frame(height: 55)
-                            .background {
-                                RoundedRectangle(cornerRadius: 35)
-                                    .foregroundColor(Color(hex: "#0D0831").opacity(0.65))
-                            }
-                            .overlay(
-                                                                      RoundedRectangle(cornerRadius: 35)
-                                                                          .stroke(Color.white.opacity(0.2), lineWidth: 1)
-                                                                  )
-                    }
-                    .font(.headline)
-                    .fontWeight(.medium)
-                    .foregroundColor(.black.opacity(0.8))
-                    .padding(.horizontal, 10)
-                    
-                    Spacer()
+        ZStack {
+            // Dark gradient background
+            LinearGradient(
+                colors: [
+                    Color(red: 0.05, green: 0.1, blue: 0.2),
+                    Color(red: 0.1, green: 0.15, blue: 0.3)
+                ],
+                startPoint: .topLeading,
+                endPoint: .bottomTrailing
+            )
+            .ignoresSafeArea()
+
+            StarryBackgroundView()
+
+            VStack(alignment: .leading) {
+                // Back button
+                HStack {
                     Button(action: {
                         UIImpactFeedbackGenerator(style: .light).impactOccurred()
+                        // Just skip - no actual back needed
                         save()
                     }) {
-                        Text(LocalizedStringKey("Next"))
-                            .frame(maxWidth: .infinity)
-                            .padding()
-                            .background(.black)
+                        Image(systemName: "chevron.left")
+                            .font(.system(size: 24, weight: .semibold))
                             .foregroundColor(.white)
-                            .cornerRadius(25)
-                            .fontWeight(.semibold)
+                            .frame(width: 44, height: 44)
                     }
+                    Spacer()
                 }
-                .padding()
-                .navigationBarItems(leading: Button(action: {
+                .padding(.top, 60)
+
+                Text("Do you have a referral code?")
+                    .fontWeight(.bold)
+                    .font(.largeTitle)
+                    .foregroundColor(.white)
+                    .padding(.bottom, 6)
+
+                Text("You can skip this step.")
+                    .font(.footnote)
+                    .foregroundColor(.white.opacity(0.6))
+                    .padding(.bottom, 15)
+                    .fontWeight(.semibold)
+
+                Spacer()
+
+                TextField("Referral Code", text: $text)
+                    .padding()
+                    .background(
+                        RoundedRectangle(cornerRadius: 35)
+                            .fill(Color.white.opacity(0.15))
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 35)
+                                    .stroke(Color.white.opacity(0.3), lineWidth: 1)
+                            )
+                    )
+                    .foregroundColor(.white)
+                    .font(.headline)
+                    .fontWeight(.medium)
+                    .tint(.white)
+
+                Spacer()
+
+                Button(action: {
                     UIImpactFeedbackGenerator(style: .light).impactOccurred()
-                    presentationMode.wrappedValue.dismiss()
+                    save()
                 }) {
-                    Image(systemName: "chevron.left")
-                        .foregroundColor(.primary)
-                        .fontWeight(.semibold)
-                })
-                .onTapGesture {
-                    endEditing(force: true)
+                    Text("Next")
+                        .font(.headline)
+                        .fontWeight(.bold)
+                        .foregroundColor(.black)
+                        .frame(maxWidth: .infinity)
+                        .padding()
+                        .background(Color.white)
+                        .cornerRadius(30)
                 }
-                .onAppear {
-                    requestAppTrackingPermission()
-                }
+            }
+            .padding()
+            .onTapGesture {
+                endEditing(force: true)
+            }
+            .onAppear {
+                requestAppTrackingPermission()
+            }
+        }
     }
-    
+
+    // MARK: - Helpers
     func save() {
         if !text.isEmpty {
             let analyticsProperties = ["Code": text]
@@ -77,7 +102,7 @@ struct ReferralCodeView: View {
         }
         onComplete()
     }
-    
+
     func requestAppTrackingPermission() {
         if #available(iOS 14, *) {
             ATTrackingManager.requestTrackingAuthorization { status in
@@ -107,7 +132,7 @@ struct ReferralCodeView: View {
 
 extension View {
     func endEditing(force: Bool) {
-#if os(iOS)
+        #if os(iOS)
         (UIApplication.shared.connectedScenes.first as? UIWindowScene)?.windows.forEach { $0.endEditing(true) }
         #endif
     }

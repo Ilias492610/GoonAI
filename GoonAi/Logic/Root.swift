@@ -14,10 +14,10 @@ struct Root: View {
             GeometryReader { geometry in
             
                                        VStack(spacing: 20) {
-                                           Image("calai")
-                                               .resizable()
-                                               .scaledToFit()
-                                               .frame(height: 40, alignment: .center)
+                                           Text("NOGOON")
+                                               .font(.system(size: 32, weight: .heavy, design: .rounded))
+                                               .tracking(4)
+                                               .foregroundColor(.black)
                                                .padding(.bottom, -15)
                                            
                                            
@@ -30,16 +30,11 @@ struct Root: View {
                                                        .fontWeight(.bold)
                                                        .foregroundColor(.black)
                                                        .padding(.bottom, -15)
-                                                   Text(LocalizedStringKey("Let's start by finding out more about your health goals."))
+                                                   Text(LocalizedStringKey("Let's start by finding out if you have a problem with porn"))
                                                        .font(.headline)
                                                        .fontWeight(.semibold)
                                                        .foregroundColor(.black)
                                                        .padding(.trailing, 50)
-                                                   
-                                                   Image("magictest")
-                                                       .resizable()
-                                                       .scaledToFit()
-                                                       .frame(width: 100)
                                                }
                                                Spacer()
                                            }
@@ -92,15 +87,15 @@ struct Root: View {
             .navigationDestination(for: ViewType.self) { viewType in
                 switch viewType {
                 case .onboarding:
-                        OnboardingView(onComplete: {
-                            navigationPath.append(ViewType.goals)
-                            AnalyticsManager.shared.trackEvent(eventName: "onboarding_auth_success")
-                            
-                        })
-                        .navigationBarBackButtonHidden()
-                        .onAppear {
-                            AnalyticsManager.shared.trackEvent(eventName: "onboarding_screen_1")
-                        }
+                    NoGoonOnboardingFlow(onComplete: {
+                        // Onboarding complete - user is now subscribed or has access
+                        // Navigate to main app
+                        AnalyticsManager.shared.trackEvent(eventName: "onboarding_complete")
+                    })
+                    .navigationBarBackButtonHidden()
+                    .onAppear {
+                        AnalyticsManager.shared.trackEvent(eventName: "onboarding_started")
+                    }
                     
                 case .goals:
                     GoalSelectView(onComplete: {

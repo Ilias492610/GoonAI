@@ -11,275 +11,185 @@ import SuperwallKit
 #endif
 
 struct PaywallView: View {
-    @State private var maintainText: String = "You should maintain:"
-    @State private var maintainAmount: String = "694 lbs"   // replace with your data
-    
-    @State private var targets: [NutrientTarget] = [
-        NutrientTarget(title: "Calories", value: 2240, goal: 2600, unit: "", icon: "flame.fill",
-                       ringStyle: .init(), accent: .primary),
-        NutrientTarget(title: "Carbs", value: 260, goal: 320, unit: "g", icon: "leaf.fill",
-                       ringStyle: .init(), accent: Color.orange),
-        NutrientTarget(title: "Protein", value: 180, goal: 210, unit: "g", icon: "dumbbell.fill",
-                       ringStyle: .init(), accent: Color.red),
-        NutrientTarget(title: "Fats", value: 70, goal: 80, unit: "g", icon: "drop.fill",
-                       ringStyle: .init(), accent: Color.blue)
-    ]
-    let viewController = ViewController()
     @AppStorage("name") private var userName: String = ""
     @AppStorage("age") private var userAge: Int = 0
     let onComplete: () -> Void
-    var body: some View {
-        VStack {
-            ScrollView {
-                     VStack(spacing: 20) {
-                         Image(systemName: "checkmark.circle.fill")
-                             .resizable()
-                             .scaledToFit()
-                             .frame(width: 40)
-                             .foregroundColor(.green)
-                         Text("\(userName), your custom\nplan is ready.")
-                             .font(.title)
-                             .fontWeight(.bold)
-                             .multilineTextAlignment(.center)
-                         VStack(spacing: 10) {
-                             Text(maintainText)
-                                 .font(.title3).fontWeight(.semibold)
-                                 .foregroundStyle(.secondary)
-                             Text(maintainAmount)
-                                 .font(.system(size: 20, weight: .semibold, design: .rounded))
-                                 .padding(.horizontal, 14)
-                                 .padding(.vertical, 6)
-                                 .background(
-                                     Capsule().fill(.secondary.opacity(0.12))
-                                 )
-                         }
-                         .padding(.top, 8)
-                         
-                         DiscountView()
-                         
-                         // Section Title
-                         VStack(alignment: .leading, spacing: 4) {
-                             Text("Daily recommendation")
-                                 .font(.title2).fontWeight(.bold)
-                             Text("You can edit this anytime")
-                                 .font(.callout).foregroundStyle(.secondary)
-                         }
-                         .frame(maxWidth: .infinity, alignment: .leading)
-                         .padding(.horizontal)
-                         .padding(.bottom, 15)
-                         
-                         // Bento Grid
-                         BentoGrid(targets: $targets, onEdit: handleEdit)
-                             .padding(.horizontal)
-                     }
-                     .padding(.bottom, 24)
-                 }
-            
-                 .background(Color(.systemGroupedBackground))
-                 .onAppear {
-                     PersistanceManager.shared.saveFile(.onboarded, value: true)
-                     scheduleNotification()
-                 }
-            
-            Button {
-                UIImpactFeedbackGenerator(style: .light).impactOccurred()
-                let view = MainTabView()
-                NavigationManager.shared.presentView(view)
-            } label: {
-                ZStack {
-                    RoundedRectangle(cornerRadius: 35)
-                        .frame(width: 350, height: 60)
-                        .foregroundColor(.black)
-                    
-                    Text("Let's get started!")
-                        .foregroundColor(.white)
-                        .fontWeight(.semibold)
-                }
-            
-             }
-        }
-    }
-    
-    private func scheduleNotification() {
-          PersistanceManager.shared.saveFile(.sentDiscountNoti, value: true)
-          let content = UNMutableNotificationContent()
-          content.title = "\(userName), we didn't give up on you."
-          content.body = "🎁⏳ Limited time offer: Get 80% off Cal AI and become the healthiest version of yourself."
-          content.sound = UNNotificationSound.default
-          
-          let trigger = UNTimeIntervalNotificationTrigger(timeInterval: 300, repeats: false) // 3 minutes
-          
-          let request = UNNotificationRequest(identifier: UUID().uuidString, content: content, trigger: trigger)
-          
-          UNUserNotificationCenter.current().add(request) { error in
-              if let error = error {
-                  print("Error scheduling notification: \(error)")
-              }
-          }
-      }
-    
-    private func handleEdit(_ target: NutrientTarget) {
-         // Haptic feedback
-         UIImpactFeedbackGenerator(style: .light).impactOccurred()
-         // TODO: Present your editor. For demo, bump goal by 5%.
-         if let index = targets.firstIndex(of: target) {
-             withAnimation(.spring) {
-                 targets[index].goal = max(1, targets[index].goal * 1.05)
-             }
-         }
-     }
-}
-
-struct BentoGrid: View {
-    @Binding var targets: [NutrientTarget]
-    var onEdit: (NutrientTarget) -> Void
-    
-    private let cols = [
-        GridItem(.flexible(), spacing: 14),
-        GridItem(.flexible(), spacing: 14)
-    ]
-    
-    var body: some View {
-        LazyVGrid(columns: cols, spacing: 25) {
-            ForEach(targets) { target in
-                BentoCard(target: target) { onEdit(target) }
-            }
-        }
-    }
-}
-
-
-struct BentoCard: View {
-    var target: NutrientTarget
-    var onEdit: () -> Void
-    
-    var body: some View {
-        ZStack(alignment: .topTrailing) {
-            RoundedRectangle(cornerRadius: 22, style: .continuous)
-                .fill(.background)
-                .overlay(
-                    RoundedRectangle(cornerRadius: 22, style: .continuous)
-                        .strokeBorder(.separator.opacity(0.35), lineWidth: 1)
-                )
-                .shadow(color: .black.opacity(0.08), radius: 14, x: 0, y: 6)
-            
-            VStack(spacing: 16) {
-                HStack(spacing: 8) {
-                    Image(systemName: target.icon)
-                        .font(.system(size: 16, weight: .semibold))
-                        .foregroundStyle(.secondary)
-                        .frame(width: 28, height: 28)
-                        .background(Circle().fill(.secondary.opacity(0.12)))
-                    Text(target.title)
-                        .font(.headline)
-                    Spacer(minLength: 0)
-                }
-                
-                RingStat(
-                    progress: target.progress,
-                    valueText: formatted(value: target.value, unit: target.unit),
-                    ringColor: ringColor(for: target),
-                    style: target.ringStyle
-                )
-                .accessibilityElement(children: .ignore)
-                .accessibilityLabel(Text("\(target.title)"))
-                .accessibilityValue(Text("\(Int(round(target.progress * 100))) percent of goal"))
-                
-                // Minibar: value vs goal
-                HStack {
-                    Text("Goal")
-                        .font(.caption).foregroundStyle(.secondary)
-                    Spacer()
-                    Text(formatted(value: target.goal, unit: target.unit))
-                        .font(.caption).foregroundStyle(.secondary)
-                        .monospacedDigit()
-                }
-            }
-            .padding(16)
-            
-            // Edit button
-            Button(action: onEdit) {
-                Image(systemName: "pencil")
-                    .font(.system(size: 14, weight: .semibold))
-                    .padding(8)
-                    .background(.thinMaterial, in: Circle())
-            }
-            .buttonStyle(.plain)
-            .padding(10)
-        }
-        .frame(height: 160)
-    }
-    
-    private func ringColor(for t: NutrientTarget) -> AngularGradient {
-        // Subtle dual-stop gradient around the ring
-        AngularGradient(
-            gradient: Gradient(colors: [
-                t.accent.opacity(0.95),
-                t.accent.opacity(0.65),
-                t.accent.opacity(0.95)
-            ]),
-            center: .center
-        )
-    }
-    
-    private func formatted(value: Double, unit: String) -> String {
-        let noUnit = unit.trimmingCharacters(in: .whitespaces).isEmpty
-        let v = value == floor(value) ? String(format: "%.0f", value) : String(format: "%.1f", value)
-        return noUnit ? v : "\(v)\(unit)"
-    }
-}
-
-// MARK: - Ring
-
-struct RingStat: View {
-    var progress: Double               // 0…1
-    var valueText: String              // center text
-    var ringColor: AngularGradient
-    var style: RingStyle
     
     var body: some View {
         ZStack {
-            Circle()
-                .stroke(lineWidth: style.lineWidth)
-                .foregroundStyle(.secondary.opacity(style.backgroundOpacity))
+            // Dark gradient background
+            LinearGradient(
+                gradient: Gradient(colors: [
+                    Color(red: 0.05, green: 0.1, blue: 0.2),
+                    Color(red: 0.1, green: 0.15, blue: 0.3)
+                ]),
+                startPoint: .topLeading,
+                endPoint: .bottomTrailing
+            )
+            .ignoresSafeArea()
             
-            Circle()
-                .trim(from: 0, to: progress)
-                .stroke(
-                    ringColor,
-                    style: StrokeStyle(
-                        lineWidth: style.lineWidth,
-                        lineCap: style.roundedCaps ? .round : .butt
-                    )
-                )
-                .rotationEffect(.degrees(-90))
-                .animation(.spring(response: 0.6, dampingFraction: 0.8), value: progress)
+            StarryBackgroundView()
             
-            Text(valueText)
-                .font(.system(.title3, design: .rounded).weight(.semibold))
-                .monospacedDigit()
+            VStack(spacing: 0) {
+                ScrollView(showsIndicators: false) {
+                    VStack(spacing: 30) {
+                        // QUITTR Logo
+                        Text("QUITTR")
+                            .font(.system(size: 28, weight: .heavy, design: .rounded))
+                            .foregroundColor(.white)
+                            .tracking(3)
+                            .padding(.top, 60)
+                        
+                        // Success check
+                        Image(systemName: "checkmark.circle.fill")
+                            .resizable()
+                            .scaledToFit()
+                            .frame(width: 60)
+                            .foregroundColor(.green)
+                        
+                        // Title
+                        Text("\(userName.isEmpty ? "Your" : "\(userName), your") custom plan is ready.")
+                            .font(.title)
+                            .fontWeight(.bold)
+                            .multilineTextAlignment(.center)
+                            .foregroundColor(.white)
+                            .padding(.horizontal, 30)
+                        
+                        // Subtitle
+                        Text("You will quit porn by:")
+                            .font(.headline)
+                            .foregroundColor(.white.opacity(0.8))
+                        
+                        // Date pill
+                        Text(quitDate())
+                            .font(.system(size: 20, weight: .semibold, design: .rounded))
+                            .padding(.horizontal, 24)
+                            .padding(.vertical, 12)
+                            .background(
+                                Capsule().fill(Color.white.opacity(0.2))
+                            )
+                            .foregroundColor(.white)
+                        
+                        // Discount/Price section
+                        DiscountView()
+                        
+                        // Benefits grid
+                        VStack(spacing: 20) {
+                            Text("Your personalized recovery plan includes:")
+                                .font(.headline)
+                                .foregroundColor(.white)
+                                .padding(.top, 20)
+                            
+                            PaywallBenefitRow(icon: "calendar.badge.checkmark", title: "90-day reboot program", subtitle: "Structured daily guidance")
+                            PaywallBenefitRow(icon: "brain.head.profile", title: "Dopamine reset", subtitle: "Rewire your reward system")
+                            PaywallBenefitRow(icon: "figure.mind.and.body", title: "Mindfulness tools", subtitle: "Meditation & breathing exercises")
+                            PaywallBenefitRow(icon: "chart.line.uptrend.xyaxis", title: "Progress tracking", subtitle: "See your growth daily")
+                            PaywallBenefitRow(icon: "person.3.fill", title: "Community support", subtitle: "Connect with others")
+                            PaywallBenefitRow(icon: "shield.checkered", title: "Accountability", subtitle: "Daily pledges & check-ins")
+                        }
+                        .padding(.horizontal, 20)
+                        
+                        Spacer().frame(height: 120)
+                    }
+                    .padding(.bottom, 40)
+                }
+                .onAppear {
+                    // Save onboarded status when view appears
+                    PersistanceManager.shared.saveFile(.onboarded, value: true)
+                    scheduleNotification()
+                }
+                
+                // Bottom button
+                Button {
+                    // TESTING: Bypass paywall - Comment out this block and uncomment the code below to restore paywall logic
+                    UIImpactFeedbackGenerator(style: .light).impactOccurred()
+                    let view = MainTabView()
+                    NavigationManager.shared.presentView(view)
+                    
+                    // TODO: Uncomment below and remove the testing code above to restore original paywall behavior
+                    /*
+                    UIImpactFeedbackGenerator(style: .light).impactOccurred()
+                    PersistanceManager.shared.saveFile(.onboarded, value: true)
+                    scheduleNotification()
+                    onComplete()
+                    */
+                } label: {
+                    Text("Let's get started!")
+                        .font(.headline)
+                        .fontWeight(.bold)
+                        .foregroundColor(.black)
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 18)
+                        .background(Color.white)
+                        .cornerRadius(30)
+                }
+                .padding(.horizontal, 30)
+                .padding(.bottom, 40)
+            }
         }
-        .frame(width: 110, height: 110)
-        .accessibilityHidden(true)
+    }
+    
+    private func quitDate() -> String {
+        let calendar = Calendar.current
+        let futureDate = calendar.date(byAdding: .day, value: 90, to: Date()) ?? Date()
+        let formatter = DateFormatter()
+        formatter.dateFormat = "MMM d, yyyy"
+        return formatter.string(from: futureDate)
+    }
+    
+    private func scheduleNotification() {
+        PersistanceManager.shared.saveFile(.sentDiscountNoti, value: true)
+        let content = UNMutableNotificationContent()
+        content.title = "\(userName.isEmpty ? "Don't give up" : "\(userName), we didn't give up on you.")"
+        content.body = "🎁⏳ Limited time offer: Get 80% off QUITTR Premium and break free from porn addiction."
+        content.sound = UNNotificationSound.default
+        
+        let trigger = UNTimeIntervalNotificationTrigger(timeInterval: 300, repeats: false) // 5 minutes
+        
+        let request = UNNotificationRequest(identifier: UUID().uuidString, content: content, trigger: trigger)
+        
+        UNUserNotificationCenter.current().add(request) { error in
+            if let error = error {
+                print("Error scheduling notification: \(error)")
+            }
+        }
     }
 }
 
-struct NutrientTarget: Identifiable, Hashable {
-    let id = UUID()
-    var title: String
-    var value: Double      // current amount (e.g. 2450)
-    var goal: Double       // daily target (e.g. 2800)
-    var unit: String       // "kcal", "g"
-    var icon: String       // SF Symbol
-    var ringStyle: RingStyle
-    var accent: Color
-    
-    var progress: Double { goal == 0 ? 0 : min(max(value / goal, 0), 1) }
-}
+// MARK: - Benefit Row
 
-struct RingStyle: Equatable, Hashable {
-    var lineWidth: CGFloat = 14
-    var backgroundOpacity: Double = 0.15
-    var roundedCaps: Bool = true
+struct PaywallBenefitRow: View {
+    let icon: String
+    let title: String
+    let subtitle: String
+    
+    var body: some View {
+        HStack(spacing: 15) {
+            Image(systemName: icon)
+                .font(.system(size: 24))
+                .foregroundColor(.cyan)
+                .frame(width: 40, height: 40)
+                .background(
+                    Circle().fill(Color.white.opacity(0.1))
+                )
+            
+            VStack(alignment: .leading, spacing: 4) {
+                Text(title)
+                    .font(.headline)
+                    .foregroundColor(.white)
+                
+                Text(subtitle)
+                    .font(.subheadline)
+                    .foregroundColor(.white.opacity(0.7))
+            }
+            
+            Spacer()
+        }
+        .padding()
+        .background(
+            RoundedRectangle(cornerRadius: 16)
+                .fill(Color.white.opacity(0.05))
+        )
+    }
 }
 

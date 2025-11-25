@@ -16,24 +16,61 @@ struct Goal: Identifiable, Hashable, Equatable {
 }
 
 struct GoalSelectView: View {
-    @Environment(\.presentationMode) var presentationMode
     @State private var goals = [
-        Goal(icon: "chart.bar.fill", title: "Reach weight goals faster", color: .blue),
-        Goal(icon: "smiley.fill", title: "Boost mood and confidence", color: .yellow),
-        Goal(icon: "bolt.fill", title: "More daily energy", color: .orange),
-        Goal(icon: "heart.fill", title: "Better overall health", color: .red),
-        Goal(icon: "brain.head.profile", title: "Stay consistent with habits", color: .cyan),
-        Goal(icon: "eye.fill", title: "Clearer focus & productivity", color: .purple),
-        Goal(icon: "sparkles", title: "Simpler, stress-free tracking", color: .pink),
+        Goal(icon: "heart.fill", title: "Stronger relationships", color: .red),
+        Goal(icon: "brain.head.profile", title: "Improved self-control", color: .cyan),
+        Goal(icon: "bolt.fill", title: "Improved desire and sex life", color: .red),
+        Goal(icon: "face.smiling", title: "Improved mood and happiness", color: .yellow),
+        Goal(icon: "sparkles", title: "Pure and healthy thoughts", color: .green),
+        Goal(icon: "bolt.fill", title: "More energy and motivation", color: .orange),
+        Goal(icon: "person.fill.checkmark", title: "Improved self-confidence", color: .blue),
     ]
     @State private var selectedGoals: Set<Goal> = []
     let onComplete: () -> Void
+    
     var body: some View {
-                VStack(alignment: .leading) {
-                    ScrollView {
-                        Text(LocalizedStringKey("Select your health goals to build your custom plan."))
-                            .font(.custom("DMSans-Medium", size: 15))
-                            .foregroundColor(.gray)
+        ZStack {
+            // Dark gradient background
+            LinearGradient(
+                colors: [
+                    Color(red: 0.05, green: 0.1, blue: 0.2),
+                    Color(red: 0.1, green: 0.15, blue: 0.3)
+                ],
+                startPoint: .topLeading,
+                endPoint: .bottomTrailing
+            )
+            .ignoresSafeArea()
+            
+            StarryBackgroundView()
+            
+            VStack(alignment: .leading, spacing: 0) {
+                // Back button
+                HStack {
+                    Button(action: {
+                        UIImpactFeedbackGenerator(style: .light).impactOccurred()
+                        // Just continue
+                        onComplete()
+                    }) {
+                        Image(systemName: "chevron.left")
+                            .font(.system(size: 24, weight: .semibold))
+                            .foregroundColor(.white)
+                            .frame(width: 44, height: 44)
+                    }
+                    Spacer()
+                    Text("Choose Your Goals")
+                        .font(.headline)
+                        .foregroundColor(.white)
+                    Spacer()
+                    Color.clear.frame(width: 44)
+                }
+                .padding(.horizontal)
+                .padding(.top, 60)
+                
+                ScrollView(showsIndicators: false) {
+                    VStack(alignment: .leading, spacing: 20) {
+                        Text("Select the goals you wish to track during your reboot.")
+                            .font(.body)
+                            .foregroundColor(.white.opacity(0.8))
                             .padding(.bottom, 15)
                         
                         
@@ -60,30 +97,28 @@ struct GoalSelectView: View {
                         Spacer()
                         
                     }
-                    .scrollIndicators(.hidden)
-                    Button(action: {
-                        UIImpactFeedbackGenerator(style: .light).impactOccurred()
-                        onComplete()
-                    }) {
-                        Text("Track these goals")
-                            .frame(maxWidth: .infinity)
-                            .padding()
-                            .background(.black)
-                            .foregroundColor(.white)
-                            .cornerRadius(25)
-                            .fontWeight(.semibold)
-                    }
+                    .padding()
+                    .padding(.bottom, 100)
                 }
-                .padding()
-                .navigationTitle(LocalizedStringKey("Choose your goals"))
-                .navigationBarItems(leading: Button(action: {
+                
+                // Button at bottom
+                Button(action: {
                     UIImpactFeedbackGenerator(style: .light).impactOccurred()
-                    presentationMode.wrappedValue.dismiss()
+                    onComplete()
                 }) {
-                    Image(systemName: "chevron.left")
-                        .foregroundColor(.primary)
-                        .fontWeight(.semibold)
-                })
+                    Text("Track these goals")
+                        .font(.headline)
+                        .fontWeight(.bold)
+                        .foregroundColor(.black)
+                        .frame(maxWidth: .infinity)
+                        .padding()
+                        .background(Color.white)
+                        .cornerRadius(30)
+                }
+                .padding(.horizontal, 30)
+                .padding(.bottom, 40)
+            }
+        }
     }
 }
 
@@ -111,8 +146,8 @@ struct GoalRow: View {
                         .cornerRadius(15)
                         .padding(.trailing, 5)
                     
-                    Text(LocalizedStringKey(goal.title))
-                        .foregroundColor(.primary)
+                    Text(goal.title)
+                        .foregroundColor(.white)
                         .font(.headline)
                         .fontWeight(.medium)
                         .multilineTextAlignment(.leading)
@@ -124,14 +159,13 @@ struct GoalRow: View {
                             .resizable()
                             .scaledToFit()
                             .frame(width: 22)
-                            .symbolRenderingMode(.palette)
-                            .foregroundStyle(.black.opacity(0.7), .white)
+                            .foregroundColor(.white)
                     } else {
-                        Image(systemName: "circle.fill")
+                        Image(systemName: "circle")
                             .resizable()
                             .scaledToFit()
                             .frame(width: 22)
-                            .foregroundColor(Color(.systemGray6))
+                            .foregroundColor(.white.opacity(0.4))
                     }
                 }
                 .padding()

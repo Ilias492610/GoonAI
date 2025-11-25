@@ -3,39 +3,72 @@ import SwiftUI
 struct WhyView: View {
     @State private var currentPage = 0
     let onComplete: () -> Void
-    let pages: [(imageName: String, title: String, subtitle: String)] = [
-        ("brain", "Porn is a drug", "Using porn releases a chemical in the brain called **dopamine**. This chemical makes you **feel good**- it's why you feel pleasure when you **watch porn**."),
-        ("hb", "Porn destroys relationships", "Porn **reduces** your hunger for a **real relationship** and replaces it with the hunger for more porn."),
-        ("symbol", "Porn shatters sex drive", "More than 50% of porn addicts have reported a **loss of interest** in **real sex**, and an overall **decrease in their sex drive**."),
-        ("sad", "Feeling unhappy?", "An **elevated dopamine level** means you need more dopamine to feel good. This is why so many heavy porn users report feeling **depresed**, **unmotivated**, and **anti-social**."),
-        ("zplant", "Path to Recovery", "Recovery is possible. By **abstaining from porn**, your brain can **reset its dopamine sensitivity**, leading to healthier relationships and **improved well-being**."),
+    let pages: [(icon: String, title: String, subtitle: String)] = [
+        ("brain.head.profile", "Porn is a drug", "Using porn releases dopamine in the brain. This chemical makes you feel good—it's why you feel pleasure when you watch porn."),
+        ("heart.slash.fill", "Porn destroys relationships", "Porn reduces your hunger for a real relationship and replaces it with the hunger for more porn."),
+        ("bolt.slash.fill", "Porn shatters sex drive", "More than 50% of porn users report a loss of interest in real sex, and an overall decrease in their sex drive."),
+        ("face.dashed.fill", "Feeling unhappy?", "An elevated dopamine level means you need more dopamine to feel good. This is why so many heavy porn users report feeling depressed, unmotivated, and anti-social."),
+        ("leaf.fill", "Path to Recovery", "Recovery is possible. By abstaining from porn, your brain can reset its dopamine sensitivity, leading to healthier relationships and improved well-being."),
     ]
     
     var body: some View {
         ZStack {
-            Color(hex: currentPage == 4 ? "#023e8a" : "#D90429").ignoresSafeArea(.all)
+            // Dark gradient background
+            LinearGradient(
+                colors: [
+                    Color(red: 0.05, green: 0.1, blue: 0.2),
+                    Color(red: 0.1, green: 0.15, blue: 0.3)
+                ],
+                startPoint: .topLeading,
+                endPoint: .bottomTrailing
+            )
+            .ignoresSafeArea()
+            
+            StarryBackgroundView()
+            
             VStack {
-                Image("WhiteLogo")
-                    .resizable()
-                    .scaledToFit()
-                    .frame(height: 26, alignment: .center)
-                    .padding(.top, 10)
+                Text("QUITTR")
+                    .font(.system(size: 28, weight: .heavy, design: .rounded))
+                    .foregroundColor(.white)
+                    .tracking(3)
+                    .padding(.top, 60)
+                
                 Spacer()
                 
                 TabView(selection: $currentPage) {
                     ForEach(0..<pages.count, id: \.self) { index in
-                        vInfoView(color: .white, info: pages[index])
-                            .tag(index)
+                        VStack(spacing: 30) {
+                            Image(systemName: pages[index].icon)
+                                .font(.system(size: 80))
+                                .foregroundColor(.white)
+                                .padding(.bottom, 20)
+                            
+                            Text(pages[index].title)
+                                .font(.system(size: 28, weight: .bold))
+                                .padding(.bottom, 10)
+                                .foregroundColor(.white)
+                                .multilineTextAlignment(.center)
+                            
+                            Text(pages[index].subtitle)
+                                .font(.system(size: 17))
+                                .multilineTextAlignment(.center)
+                                .foregroundColor(.white.opacity(0.9))
+                                .frame(width: 335)
+                        }
+                        .padding()
+                        .tag(index)
                     }
                 }
                 .tabViewStyle(PageTabViewStyle(indexDisplayMode: .never))
-                .frame(height: 400)
+                .frame(height: 500)
                 
                 Spacer()
-                PageIndicator(color: Color(hex: "#89CFF0"), currentPage: $currentPage, pageCount: pages.count)
+                
+                PageIndicator(color: .white, currentPage: $currentPage, pageCount: pages.count)
                     .padding(.top, 20)
                 
                 Button(action: {
+                    UIImpactFeedbackGenerator(style: .light).impactOccurred()
                     if currentPage == pages.count - 1 {
                         onComplete()
                     } else {
@@ -44,51 +77,22 @@ struct WhyView: View {
                         }
                     }
                 }) {
-                    ZStack {
-                        RoundedRectangle(cornerRadius: 40)
-                            .frame(width: 150, height: 50)
-                            .foregroundColor(.white)
-                        HStack {
-                            Text(LocalizedStringKey("Next"))
-                            Image(systemName: "chevron.right")
-                            
-                        }
-                        .font(.headline)
-                        .foregroundColor(.black)
-                        .fontWeight(.bold)
+                    HStack {
+                        Text("Next")
+                        Image(systemName: "chevron.right")
                     }
+                    .font(.headline)
+                    .fontWeight(.bold)
+                    .foregroundColor(.black)
+                    .frame(maxWidth: .infinity)
                     .padding()
+                    .background(Color.white)
+                    .cornerRadius(30)
                 }
-                .padding(.top, 20)
-                
-        
+                .padding(.horizontal, 30)
+                .padding(.bottom, 40)
             }
         }
-    }
-}
-
-struct vInfoView: View {
-    let color: Color
-    let info: (imageName: String, title: String, subtitle: String)
-    
-    var body: some View {
-        VStack {
-//            LottieView(name: info.imageName)
-//                .frame(width: 300)
-            
-            Text(LocalizedStringKey(info.title))
-                .font(.custom("DMSans-Black", size: 25))
-                .padding(.bottom, 7.5)
-                .foregroundColor(color)
-                .multilineTextAlignment(.center)
-            
-            Text(LocalizedStringKey(info.subtitle))
-                .font(.custom("DMSans-Medium", size: 16))
-                .multilineTextAlignment(.center)
-                .foregroundColor(color)
-                .frame(width: 335)
-        }
-        .padding()
     }
 }
 
