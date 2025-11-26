@@ -8,6 +8,7 @@
 import Foundation
 import SwiftUI
 import Combine
+import AVFoundation
 
 @MainActor
 class LibraryViewModel: ObservableObject {
@@ -20,6 +21,11 @@ class LibraryViewModel: ObservableObject {
     @Published var currentAudioTrack: AudioTrack?
     @Published var isPlaying: Bool = false
     @Published var playbackTime: TimeInterval = 0
+    
+    // MARK: - Private Properties
+    
+    private var audioPlayer: AVAudioPlayer?
+    private var playbackTimer: Timer?
     
     // MARK: - Computed Properties
     
@@ -95,29 +101,110 @@ class LibraryViewModel: ObservableObject {
     // MARK: - Audio Actions
     
     func playAudio(_ track: AudioTrack) {
-        currentAudioTrack = track
-        isPlaying = true
-        playbackTime = 0
+        // Stop any currently playing audio
+        stopAudio()
         
-        // TODO: Integrate AVAudioPlayer
-        // For now, just simulate playback
-        simulatePlayback()
+        currentAudioTrack = track
+        
+        // Try to load and play the audio file
+        guard let url = Bundle.main.url(forResource: track.filename.replacingOccurrences(of: ".mp3", with: ""), withExtension: "mp3") else {
+            print("⚠️ Audio file not found: \(track.filename)")
+            print("📝 Add \(track.filename) to your Xcode project to enable playback")
+            // Fall back to simulation if file doesn't exist
+            simulatePlayback()
+            return
+        }
+        
+        do {
+            // Configure audio session for playback
+            try AVAudioSession.sharedInstance().setCategory(.playback, mode: .default)
+            try AVAudioSession.sharedInstance().setActive(true)
+            
+            // Initialize and configure the audio player
+            audioPlayer = try AVAudioPlayer(contentsOf: url)
+            audioPlayer?.numberOfLoops = -1 // Loop indefinitely
+            audioPlayer?.prepareToPlay()
+            audioPlayer?.play()
+            
+            isPlaying = true
+            playbackTime = 0
+            
+            // Start timer to update playback time
+            startPlaybackTimer()
+            
+            print("✅ Now playing: \(track.title)")
+        } catch {
+            print("❌ Error playing audio: \(error.localizedDescription)")
+            // Fall back to simulation if playback fails
+            simulatePlayback()
+        }
     }
     
     func togglePlayback() {
-        isPlaying.toggle()
-        // TODO: Pause/resume actual audio
+        guard let player = audioPlayer else {
+            isPlaying.toggle()
+            return
+        }
+        
+        if isPlaying {
+            player.pause()
+            isPlaying = false
+            playbackTimer?.invalidate()
+            playbackTimer = nil
+        } else {
+            player.play()
+            isPlaying = true
+            startPlaybackTimer()
+        }
     }
     
     func stopAudio() {
+        audioPlayer?.stop()
+        audioPlayer = nil
+        playbackTimer?.invalidate()
+        playbackTimer = nil
         isPlaying = false
         currentAudioTrack = nil
         playbackTime = 0
-        // TODO: Stop actual audio
+        
+        // Deactivate audio session
+        try? AVAudioSession.sharedInstance().setActive(false, options: .notifyOthersOnDeactivation)
+    }
+    
+    func restartAudio() {
+        guard let player = audioPlayer else {
+            playbackTime = 0
+            return
+        }
+        
+        player.currentTime = 0
+        playbackTime = 0
+        
+        if !isPlaying {
+            player.play()
+            isPlaying = true
+            startPlaybackTimer()
+        }
+    }
+    
+    private func startPlaybackTimer() {
+        playbackTimer?.invalidate()
+        playbackTimer = Timer.scheduledTimer(withTimeInterval: 0.1, repeats: true) { [weak self] _ in
+            guard let self = self else { return }
+            
+            Task { @MainActor in
+                if let player = self.audioPlayer {
+                    self.playbackTime = player.currentTime
+                }
+            }
+        }
     }
     
     private func simulatePlayback() {
-        // Simple time increment simulation
+        // Fallback simulation when audio files aren't available
+        isPlaying = true
+        playbackTime = 0
+        
         Timer.scheduledTimer(withTimeInterval: 1.0, repeats: true) { [weak self] timer in
             guard let self = self, self.isPlaying else {
                 timer.invalidate()

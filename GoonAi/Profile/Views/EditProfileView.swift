@@ -14,10 +14,6 @@ struct EditProfileView: View {
     @State private var showNameEditor = false
     @State private var showAgeEditor = false
     @State private var showGenderPicker = false
-    @State private var showOrientationPicker = false
-    @State private var showEthnicityPicker = false
-    @State private var showReligiousPicker = false
-    @State private var showRegionPicker = false
     @State private var showDeleteConfirmation = false
     @State private var showLogoutConfirmation = false
     
@@ -28,13 +24,6 @@ struct EditProfileView: View {
             VStack(spacing: 0) {
                 // Top bar
                 HStack {
-                    Button(action: { dismiss() }) {
-                        Image(systemName: "xmark")
-                            .font(.system(size: 18, weight: .semibold))
-                            .foregroundColor(.white)
-                            .frame(width: 44, height: 44)
-                    }
-                    
                     Spacer()
                     
                     Text("Your profile")
@@ -42,27 +31,21 @@ struct EditProfileView: View {
                         .foregroundColor(.white)
                     
                     Spacer()
-                    
-                    Color.clear.frame(width: 44)
                 }
+                .overlay(
+                    Button(action: { dismiss() }) {
+                        Image(systemName: "xmark")
+                            .font(.system(size: 18, weight: .semibold))
+                            .foregroundColor(.white)
+                            .frame(width: 44, height: 44)
+                    },
+                    alignment: .trailing
+                )
                 .padding(.horizontal, 20)
                 .padding(.top, 20)
                 
                 ScrollView(showsIndicators: false) {
                     VStack(spacing: 0) {
-                        // Email (read-only)
-                        ProfileFieldRow(
-                            label: "Email",
-                            value: viewModel.userProfile.email,
-                            isEditable: false,
-                            action: {}
-                        )
-                        .padding(.horizontal, 20)
-                        
-                        Divider()
-                            .background(Color.white.opacity(0.2))
-                            .padding(.horizontal, 20)
-                        
                         // Name
                         ProfileFieldRow(
                             label: "Name",
@@ -95,58 +78,6 @@ struct EditProfileView: View {
                             value: viewModel.userProfile.gender,
                             isEditable: true,
                             action: { showGenderPicker = true }
-                        )
-                        .padding(.horizontal, 20)
-                        
-                        Divider()
-                            .background(Color.white.opacity(0.2))
-                            .padding(.horizontal, 20)
-                        
-                        // Orientation
-                        ProfileFieldRow(
-                            label: "Orientation",
-                            value: viewModel.userProfile.orientation,
-                            isEditable: true,
-                            action: { showOrientationPicker = true }
-                        )
-                        .padding(.horizontal, 20)
-                        
-                        Divider()
-                            .background(Color.white.opacity(0.2))
-                            .padding(.horizontal, 20)
-                        
-                        // Ethnicity
-                        ProfileFieldRow(
-                            label: "Ethnicity",
-                            value: viewModel.userProfile.ethnicity,
-                            isEditable: true,
-                            action: { showEthnicityPicker = true }
-                        )
-                        .padding(.horizontal, 20)
-                        
-                        Divider()
-                            .background(Color.white.opacity(0.2))
-                            .padding(.horizontal, 20)
-                        
-                        // Religious content
-                        ProfileFieldRow(
-                            label: "Religious content",
-                            value: viewModel.userProfile.religiousContent,
-                            isEditable: true,
-                            action: { showReligiousPicker = true }
-                        )
-                        .padding(.horizontal, 20)
-                        
-                        Divider()
-                            .background(Color.white.opacity(0.2))
-                            .padding(.horizontal, 20)
-                        
-                        // Region
-                        ProfileFieldRow(
-                            label: "Region",
-                            value: viewModel.userProfile.region,
-                            isEditable: true,
-                            action: { showRegionPicker = true }
                         )
                         .padding(.horizontal, 20)
                         

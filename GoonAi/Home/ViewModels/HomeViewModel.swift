@@ -8,6 +8,8 @@
 import Foundation
 import SwiftUI
 import Combine
+import UserNotifications
+import UIKit
 
 @MainActor
 class HomeViewModel: ObservableObject {
@@ -31,11 +33,11 @@ class HomeViewModel: ObservableObject {
     var quoteOfDay: String {
         // Can rotate based on date or streak progress
         let quotes = [
-            "Today marks the beginning of a powerful journey. This decision is a commitment to a better you. Remember, small steps lead to great changes.",
-            "You're building a legacy with every choice you make. This is a step toward the person you want to become.",
-            "Every moment of resistance is a victory. You are stronger than your urges.",
-            "The journey of a thousand miles begins with a single step. You've already started.",
-            "Progress, not perfection. Every day clean is a win."
+            "The only person you are destined to become is the person you decide to be.",
+            "Strength doesn't come from what you can do. It comes from overcoming the things you once thought you couldn't.",
+            "Every battle you fight makes you stronger for the next one. Keep pushing forward.",
+            "Your future self is counting on the decisions you make today. Make them count.",
+            "Discipline is choosing between what you want now and what you want most."
         ]
         let dayIndex = streakState.currentStreakDays % quotes.count
         return quotes[dayIndex]
@@ -129,7 +131,7 @@ class HomeViewModel: ObservableObject {
     // MARK: - Relapse Actions
     
     func startRelapseFlow() {
-        activeSheet = .relapseReflection
+        activeSheet = .relapseResult
     }
     
     func continueRelapseFlow() {
@@ -168,6 +170,11 @@ class HomeViewModel: ObservableObject {
         activeSheet = nil
     }
     
+    func deleteJournalEntry(_ entry: JournalEntry) {
+        journalEntries.removeAll { $0.id == entry.id }
+        saveJournalEntries()
+    }
+    
     func updateQuittingReason(_ text: String) {
         quittingReason.text = text
         quittingReason.lastUpdated = Date()
@@ -177,30 +184,46 @@ class HomeViewModel: ObservableObject {
     
     // MARK: - Checklist Actions
     
-    func toggleChecklistItem(_ itemId: String) {
-        if let index = checklistState.items.firstIndex(where: { $0.id == itemId }) {
-            checklistState.items[index].isCompleted.toggle()
+    func handleChecklistAction(_ item: ChecklistItem) {
+        guard let index = checklistState.items.firstIndex(where: { $0.id == item.id }) else { return }
+        var updatedItem = checklistState.items[index]
+        
+        if updatedItem.hasLaunched {
+            checklistState.items.remove(at: index)
             saveChecklistState()
+            return
+        }
+        
+        launchDestination(for: updatedItem)
+        updatedItem.hasLaunched = true
+        checklistState.items[index] = updatedItem
+        saveChecklistState()
+    }
+    
+    private func launchDestination(for item: ChecklistItem) {
+        switch item.actionType {
+        case .enableNotifications:
+            requestNotificationPermission()
+        case .joinCommunity:
+            open(urlString: "https://t.me/NoGoonCommunity")
+        case .enableBlocker:
+            activeSheet = .contentBlocker
+        case .plantTree, .createPost:
+            break
         }
     }
     
-    func handleChecklistAction(_ action: ChecklistItem.ActionType) {
-        switch action {
-        case .enableNotifications:
-            // TODO: Request notification permissions
-            toggleChecklistItem("notifications")
-        case .plantTree:
-            // TODO: Navigate to tree planting feature
-            toggleChecklistItem("tree")
-        case .joinCommunity:
-            // TODO: Open Telegram or navigate to Community tab
-            toggleChecklistItem("community")
-        case .enableBlocker:
-            activeSheet = .contentBlocker
-        case .createPost:
-            // TODO: Navigate to community post creation
-            toggleChecklistItem("post")
+    private func requestNotificationPermission() {
+        UNUserNotificationCenter.current().requestAuthorization(options: [.alert, .sound, .badge]) { [weak self] granted, _ in
+            if !granted {
+                self?.open(urlString: UIApplication.openSettingsURLString)
+            }
         }
+    }
+    
+    private func open(urlString: String) {
+        guard let url = URL(string: urlString) else { return }
+        UIApplication.shared.open(url)
     }
     
     // MARK: - Panic Button
@@ -254,7 +277,7 @@ class HomeViewModel: ObservableObject {
     private static func loadChecklistState() -> ChecklistState {
         if let data = UserDefaults.standard.data(forKey: "checklistState"),
            let state = try? JSONDecoder().decode(ChecklistState.self, from: data) {
-            return state
+            return ChecklistState(items: state.items)
         }
         return ChecklistState()
     }

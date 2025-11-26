@@ -12,7 +12,7 @@ struct HomeView: View {
 
     var body: some View {
         ZStack {
-            // Starry background
+            // Starry background - covers entire screen including safe areas
             StarryBackgroundView()
             
             // Main scrollable content
@@ -22,13 +22,20 @@ struct HomeView: View {
                     topBar
                         .padding(.top, 10)
                     
+                    if viewModel.pledgeState.isActive,
+                       let hours = viewModel.pledgeState.hoursUntilCheckIn {
+                        PledgeCheckInPill(hoursRemaining: hours)
+                            .padding(.horizontal)
+                            .transition(.opacity)
+                    }
+                    
                     // Streak orb
                     StreakOrbView(
                         currentTier: viewModel.streakState.currentTier,
                         nextTier: viewModel.streakState.nextTier,
                         currentDays: viewModel.streakState.currentStreakDays,
                         onTap: {
-                            viewModel.showStreakOptions()
+                            // Orb is non-interactive
                         }
                     )
                     .padding(.top, 20)
@@ -50,21 +57,20 @@ struct HomeView: View {
                             }
                         },
                         onMeditate: {
-                            // TODO: Navigate to meditation feature
+                            viewModel.activeSheet = .meditation
                         },
                         onReset: {
                             viewModel.startRelapseFlow()
-                        },
-                        onMelius: {
-                            // TODO: Navigate to Melius feature
                         }
                     )
                     .padding(.vertical, 10)
                     
                     // Brain Rewiring progress (if user has pledged or has streak)
                     if viewModel.pledgeState.isActive || viewModel.streakState.currentStreakDays > 0 {
-                        BrainRewiringCardView(progress: viewModel.brainRewiringProgress)
-                            .padding(.top, 10)
+                        BrainRewiringCardView(progress: viewModel.brainRewiringProgress) {
+                            NotificationCenter.default.post(name: .navigateToAnalytics, object: nil)
+                        }
+                        .padding(.top, 10)
                     }
                     
                     // Motivational quote
@@ -78,9 +84,11 @@ struct HomeView: View {
                     .padding(.top, 10)
                     
                     // Journal card
-                    JournalCardView {
+                    JournalCardView(entries: viewModel.journalEntries, onAddNew: {
                         viewModel.activeSheet = .journalAdd
-                    }
+                    }, onDelete: { entry in
+                        viewModel.deleteJournalEntry(entry)
+                    })
                     .padding(.top, 10)
                     
                     // Checklist card
@@ -90,24 +98,49 @@ struct HomeView: View {
                     )
                     .padding(.top, 10)
                     
-                    // Panic Button
-                    PanicButtonView {
-                        viewModel.showPanicButton()
+                    // Why I'm Quitting card
+                    VStack(alignment: .leading, spacing: 12) {
+                        Text("Why I'm Quitting")
+                            .font(.headline)
+                            .foregroundColor(.white)
+                        
+                        Text(viewModel.quittingReason.text.isEmpty ? "Tap edit to write your deepest why." : viewModel.quittingReason.text)
+                            .font(.body)
+                            .foregroundColor(.white.opacity(0.9))
+                            .lineLimit(4)
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                        
+                        Text("Updated \(viewModel.quittingReason.lastUpdated.formatted(date: .abbreviated, time: .shortened))")
+                            .font(.caption2)
+                            .foregroundColor(.white.opacity(0.6))
+                        
+                        Button {
+                            viewModel.activeSheet = .quittingReason
+                        } label: {
+                            HStack {
+                                Image(systemName: "pencil.circle.fill")
+                                    .font(.title3)
+                                Text("Edit Reason")
+                                    .font(.headline)
+                            }
+                            .foregroundColor(.white)
+                            .frame(maxWidth: .infinity)
+                            .frame(height: 50)
+                            .background(
+                                RoundedRectangle(cornerRadius: 15, style: .continuous)
+                                    .fill(Color.purple.opacity(0.6))
+                            )
+                        }
                     }
-                    .padding(.top, 20)
-                    .padding(.bottom, 100) // Space for tab bar
+                    .padding()
+                    .glassEffect()
+                    .padding(.horizontal)
+                    .padding(.top, 10)
+                    
                 }
+                .padding(.bottom, 220)
             }
             
-            // Pledge check-in pill overlay (if active)
-            if viewModel.pledgeState.isActive,
-               let hours = viewModel.pledgeState.hoursUntilCheckIn {
-                VStack {
-                    PledgeCheckInPill(hoursRemaining: hours)
-                        .padding(.top, 70)
-                    Spacer()
-                }
-            }
         }
         .sheet(item: $viewModel.activeSheet) { sheetType in
             sheetContent(for: sheetType)
@@ -122,6 +155,13 @@ struct HomeView: View {
             }
         } message: {
             Text("Editing your streak date will exclude you from leaderboards. Your progress will still be tracked, but you won't appear in community rankings.")
+        }
+        .overlay(alignment: .bottom) {
+            PanicButtonView {
+                viewModel.showPanicButton()
+            }
+            .padding(.horizontal, 24)
+            .padding(.bottom, 96)
         }
         .fullScreenCover(isPresented: $viewModel.showTierUnlock) {
             TierUnlockView(
@@ -169,6 +209,8 @@ struct HomeView: View {
             RelapseFeelingView(viewModel: viewModel)
         case .relapseCommunityStats:
             RelapseCommunityStatsView(viewModel: viewModel)
+        case .urgeSupport:
+            UrgeSupportView(viewModel: viewModel)
         case .journalAdd:
             AddNoteView(viewModel: viewModel)
         case .quittingReason:
@@ -179,6 +221,8 @@ struct HomeView: View {
             ContentBlockerView()
         case .panicButton:
             PanicButtonFullView(viewModel: viewModel)
+        case .meditation:
+            MeditationView()
         }
     }
 }
@@ -186,3 +230,4 @@ struct HomeView: View {
 #Preview {
     HomeView()
 }
+

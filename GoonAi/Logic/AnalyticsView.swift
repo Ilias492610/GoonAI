@@ -10,16 +10,12 @@ struct AnalyticsView: View {
             
             ScrollView(showsIndicators: false) {
                 VStack(spacing: 20) {
-                    // Header with mode toggle
+                    // Header
                     header
                         .padding(.top, 10)
                     
-                    // Content based on selected mode
-                    if viewModel.mode == .ring {
-                        ringModeContent
-                    } else {
-                        radarModeContent
-                    }
+                    // Ring mode content
+                    ringModeContent
                     
                     Spacer(minLength: 100)
                 }
@@ -37,31 +33,6 @@ struct AnalyticsView: View {
                 .foregroundColor(.white)
             
             Spacer()
-            
-            // Mode toggle
-            HStack(spacing: 0) {
-                ForEach(AnalyticsMode.allCases, id: \.self) { mode in
-                    Button {
-                        viewModel.mode = mode
-                        UIImpactFeedbackGenerator(style: .light).impactOccurred()
-                    } label: {
-                        Text(mode.rawValue)
-                            .font(.subheadline)
-                            .fontWeight(.semibold)
-                            .foregroundColor(viewModel.mode == mode ? .white : .white.opacity(0.6))
-                            .padding(.horizontal, 20)
-                            .padding(.vertical, 8)
-                            .background(
-                                Capsule()
-                                    .fill(viewModel.mode == mode ? Color.white.opacity(0.2) : Color.clear)
-                            )
-                    }
-                }
-            }
-            .background(
-                Capsule()
-                    .fill(.ultraThinMaterial)
-            )
         }
         .padding(.horizontal)
     }
@@ -77,53 +48,14 @@ struct AnalyticsView: View {
             )
             .padding(.top, 20)
             
-            // Quit date
-            QuitDateCard(date: viewModel.quitDateFormatted)
-            
-            // Level progress
-            LevelProgressCard(level: viewModel.currentLevel)
-            
-            // Streak stats
+            // Streak stats (only current and highest)
             StreakStatsRowAnalytics(
                 currentStreak: viewModel.currentStreakDays,
-                highestStreak: viewModel.highestStreakDays,
-                completedActivities: viewModel.completedDailyActivities,
-                totalActivities: viewModel.totalDailyActivities
+                highestStreak: viewModel.highestStreakDays
             )
             
-            // Benefits list
+            // Benefits list with progress bars
             BenefitsListView(benefits: viewModel.benefits)
-        }
-    }
-    
-    // MARK: - Radar Mode Content
-    
-    private var radarModeContent: some View {
-        VStack(spacing: 20) {
-            // Radar chart
-            RecoveryRadarCard(
-                dimensions: viewModel.dimensionStats,
-                selectedDimension: viewModel.selectedDimension
-            )
-            .padding(.top, 20)
-            
-            // Quit date
-            QuitDateCard(date: viewModel.quitDateFormatted)
-            
-            // Overall progress chart
-            OverallProgressChart(
-                progressHistory: viewModel.progressHistory,
-                firstLoginDate: viewModel.firstLoginFormatted
-            )
-            
-            // Dimension stats grid
-            DimensionStatsGrid(
-                dimensions: viewModel.dimensionStats,
-                selectedDimension: viewModel.selectedDimension,
-                onSelect: { dimension in
-                    viewModel.selectDimension(dimension)
-                }
-            )
         }
     }
 }

@@ -6,10 +6,16 @@
 //
 
 import SwiftUI
+import UIKit
+import FamilyControls
 
 struct ContentBlockerView: View {
     @Environment(\.dismiss) private var dismiss
+    @StateObject private var screenTimeManager = ScreenTimeManager.shared
     @State private var contentRestrictionsEnabled = false
+    @State private var isProcessing = false
+    @State private var alertMessage: String?
+    @State private var isSyncingToggle = false
     
     var body: some View {
         ZStack {
@@ -87,63 +93,110 @@ struct ContentBlockerView: View {
                         // Settings
                         VStack(spacing: 16) {
                             // Enable Content Restrictions toggle
-                            HStack {
-                                Text("Enable Content Restrictions")
-                                    .font(.headline)
-                                    .foregroundColor(.white)
-                                
-                                Spacer()
-                                
-                                Toggle("", isOn: $contentRestrictionsEnabled)
-                                    .labelsHidden()
+                            VStack(alignment: .leading, spacing: 12) {
+                                HStack {
+                                    VStack(alignment: .leading, spacing: 4) {
+                                        Text("Enable Content Restrictions")
+                                            .font(.headline)
+                                            .foregroundColor(.white)
+                                        Text(statusDescription)
+                                            .font(.caption)
+                                            .foregroundColor(.white.opacity(0.7))
+                                    }
+                                    Spacer()
+                                    Toggle("", isOn: $contentRestrictionsEnabled)
+                                        .labelsHidden()
+                                        .disabled(isProcessing)
+                                        .tint(Color.green)
+                                }
+                                if isProcessing {
+                                    ProgressView()
+                                        .progressViewStyle(.circular)
+                                        .tint(.white)
+                                }
+                                if let alertMessage {
+                                    Text(alertMessage)
+                                        .font(.caption2)
+                                        .foregroundColor(.yellow)
+                                }
                             }
                             .padding()
                             .glassEffect()
                             .padding(.horizontal, 20)
-                            
-                            // Block on desktop
-                            Button {
-                                // TODO: Navigate to desktop blocking setup
-                            } label: {
-                                HStack {
-                                    Text("Block content on desktop")
-                                        .font(.headline)
-                                        .foregroundColor(.white)
-                                    
-                                    Spacer()
-                                    
-                                    Image(systemName: "chevron.right")
-                                        .foregroundColor(.white.opacity(0.5))
+                            .onChange(of: contentRestrictionsEnabled) { newValue in
+                                guard !isSyncingToggle else { return }
+                                Task { await toggleContentRestrictions(newValue) }
+                            }
+                            .onReceive(screenTimeManager.$isBlockingActive) { isActive in
+                                isSyncingToggle = true
+                                withAnimation {
+                                    contentRestrictionsEnabled = isActive
                                 }
-                                .padding()
-                                .glassEffect()
-                                .padding(.horizontal, 20)
+                                DispatchQueue.main.async {
+                                    isSyncingToggle = false
+                                }
                             }
                         }
                         .padding(.top, 20)
                         
-                        // Block Apps button
-                        Button {
-                            // TODO: Navigate to app blocking
-                        } label: {
-                            HStack {
-                                Text("Block Apps")
-                                Image(systemName: "plus")
-                            }
-                            .font(.headline)
-                            .foregroundColor(.primary)
-                            .frame(maxWidth: .infinity)
-                            .frame(height: 56)
-                            .background(
-                                RoundedRectangle(cornerRadius: 20)
-                                    .fill(Color.white)
-                            )
+                        VStack(spacing: 12) {
+                            Label("Safari, Chrome & in-app browsers stay clean", systemImage: "globe")
+                                .font(.subheadline)
+                                .foregroundColor(.white.opacity(0.9))
+                            Label("Adult content domains are blocked", systemImage: "shield.lefthalf.filled")
+                                .font(.caption)
+                                .foregroundColor(.white.opacity(0.8))
                         }
-                        .padding(.horizontal, 20)
-                        .padding(.top, 20)
+                        .padding(.horizontal, 30)
                         .padding(.bottom, 100)
                     }
                 }
+            }
+        }
+        .task {
+            await screenTimeManager.refreshStatus()
+            isSyncingToggle = true
+            contentRestrictionsEnabled = screenTimeManager.isBlockingActive
+            isSyncingToggle = false
+        }
+        .alert("Screen Time", isPresented: Binding(get: { alertMessage != nil }, set: { if !$0 { alertMessage = nil } })) {
+            Button("OK", role: .cancel, action: { alertMessage = nil })
+        } message: {
+            if let alertMessage {
+                Text(alertMessage)
+            }
+        }
+    }
+    
+    // MARK: - Helper Functions
+    
+    private var statusDescription: String {
+        switch screenTimeManager.authorizationStatus {
+        case .approved:
+            return screenTimeManager.isBlockingActive ? "Porn domains are currently blocked." : "Tap the switch to begin blocking popular porn sites."
+        case .denied:
+            return "Screen Time permission denied. Open Settings to allow access."
+        case .notDetermined:
+            return "We'll ask for Screen Time access when you enable the switch."
+        @unknown default:
+            return "Screen Time status unavailable on this device."
+        }
+    }
+
+    private func toggleContentRestrictions(_ isOn: Bool) async {
+        guard !isProcessing else { return }
+        await MainActor.run { isProcessing = true }
+        defer { Task { @MainActor in isProcessing = false } }
+        do {
+            if isOn {
+                try await screenTimeManager.enableDefaultRestrictions()
+            } else {
+                screenTimeManager.disableRestrictions()
+            }
+        } catch {
+            await MainActor.run {
+                contentRestrictionsEnabled = false
+                alertMessage = "We couldn't get Screen Time permission. Please enable Screen Time for NoGoon in Settings and try again."
             }
         }
     }

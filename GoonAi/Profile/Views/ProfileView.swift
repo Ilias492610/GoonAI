@@ -11,7 +11,7 @@ struct ProfileView: View {
     @StateObject private var viewModel = ProfileViewModel()
     @State private var showEditProfile = false
     @State private var showSettings = false
-    @State private var showReferral = false
+    @State private var showShareSheet = false
     @State private var showAchievements = false
     @State private var showLeaderboard = false
     
@@ -37,11 +37,8 @@ struct ProfileView: View {
                     )
                     .padding(.horizontal, 20)
                     
-                    // Leaderboard Preview
-                    leaderboardSection
-                    
-                    // Referral CTA
-                    referralCard
+                    // Leaderboard Preview (Coming Soon)
+                    leaderboardComingSoonSection
                     
                     Spacer(minLength: 100)
                 }
@@ -53,7 +50,7 @@ struct ProfileView: View {
                 HStack {
                     Spacer()
                     
-                    Button(action: { showReferral = true }) {
+                    Button(action: { showShareSheet = true }) {
                         ZStack {
                             Circle()
                                 .fill(.ultraThinMaterial)
@@ -89,8 +86,8 @@ struct ProfileView: View {
         .sheet(isPresented: $showSettings) {
             SettingsView(viewModel: viewModel)
         }
-        .sheet(isPresented: $showReferral) {
-            ReferralView(viewModel: viewModel)
+        .sheet(isPresented: $showShareSheet) {
+            ShareProgressView(viewModel: viewModel)
         }
         .sheet(isPresented: $showAchievements) {
             AchievementsView(viewModel: viewModel)
@@ -156,9 +153,9 @@ struct ProfileView: View {
         }
     }
     
-    // MARK: - Leaderboard Section
+    // MARK: - Leaderboard Coming Soon Section
     
-    private var leaderboardSection: some View {
+    private var leaderboardComingSoonSection: some View {
         VStack(alignment: .leading, spacing: 16) {
             HStack {
                 Text("Leaderboard")
@@ -167,79 +164,49 @@ struct ProfileView: View {
                     .foregroundColor(.white)
                 
                 Spacer()
+            }
+            .padding(.horizontal, 20)
+            
+            ZStack {
+                // Blurred background content
+                VStack(spacing: 12) {
+                    ForEach(viewModel.leaderboard.prefix(3)) { entry in
+                        LeaderboardRowView(entry: entry)
+                            .padding(.horizontal, 20)
+                    }
+                }
+                .padding(.vertical, 16)
+                .blur(radius: 8)
                 
-                Button(action: { showLeaderboard = true }) {
-                    Image(systemName: "chevron.right")
-                        .font(.system(size: 16, weight: .semibold))
+                // Coming Soon overlay
+                VStack(spacing: 12) {
+                    Image(systemName: "clock.fill")
+                        .font(.system(size: 40))
+                        .foregroundColor(.cyan)
+                    
+                    Text("Available Soon")
+                        .font(.title3)
+                        .fontWeight(.bold)
+                        .foregroundColor(.white)
+                    
+                    Text("Leaderboard coming in the next update")
+                        .font(.subheadline)
                         .foregroundColor(.white.opacity(0.7))
+                        .multilineTextAlignment(.center)
                 }
-            }
-            .padding(.horizontal, 20)
-            
-            VStack(spacing: 12) {
-                ForEach(viewModel.leaderboard.prefix(3)) { entry in
-                    LeaderboardRowView(entry: entry)
-                        .padding(.horizontal, 20)
-                }
-            }
-            .padding(.vertical, 16)
-            .glassEffect(cornerRadius: 24, opacity: 0.15)
-            .padding(.horizontal, 20)
-        }
-    }
-    
-    // MARK: - Referral Card
-    
-    private var referralCard: some View {
-        VStack(spacing: 16) {
-            Text("Share NoGoon and get rewards")
-                .font(.headline)
-                .foregroundColor(.white)
-            
-            Button(action: { showReferral = true }) {
-                HStack(spacing: 8) {
-                    Text("30-days Guest Pass")
-                        .font(.headline)
-                        .foregroundColor(.white)
-                    
-                    Spacer()
-                    
-                    Image(systemName: "arrow.right")
-                        .font(.system(size: 16, weight: .semibold))
-                        .foregroundColor(.white)
-                }
-                .padding(20)
+                .padding(30)
                 .background(
                     RoundedRectangle(cornerRadius: 20, style: .continuous)
-                        .fill(
-                            LinearGradient(
-                                colors: [.purple, .blue],
-                                startPoint: .topLeading,
-                                endPoint: .bottomTrailing
-                            )
+                        .fill(Color.black.opacity(0.6))
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 20, style: .continuous)
+                                .stroke(Color.cyan.opacity(0.3), lineWidth: 2)
                         )
                 )
             }
-            
-            Button(action: { showReferral = true }) {
-                HStack {
-                    Image(systemName: "square.and.arrow.up")
-                        .font(.system(size: 18))
-                    Text("Share Now")
-                        .font(.headline)
-                }
-                .foregroundColor(.white)
-                .frame(maxWidth: .infinity)
-                .padding(.vertical, 16)
-                .background(
-                    RoundedRectangle(cornerRadius: 16, style: .continuous)
-                        .fill(Color.white.opacity(0.2))
-                )
-            }
+            .glassEffect(cornerRadius: 24, opacity: 0.15)
+            .padding(.horizontal, 20)
         }
-        .padding(20)
-        .glassEffect(cornerRadius: 24, opacity: 0.2)
-        .padding(.horizontal, 20)
     }
 }
 

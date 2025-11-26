@@ -110,7 +110,7 @@ struct MindfulnessPlayerView: View {
                 HStack(spacing: 40) {
                     // Record/restart button
                     Button {
-                        viewModel.playbackTime = 0
+                        viewModel.restartAudio()
                     } label: {
                         Circle()
                             .fill(Color.black.opacity(0.3))

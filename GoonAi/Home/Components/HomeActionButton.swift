@@ -2,7 +2,7 @@
 //  HomeActionButton.swift
 //  GoonAi
 //
-//  Action button component (Pledge, Meditate, Reset, Melius)
+//  Action button component (Pledge, Meditate, Reset)
 //
 
 import SwiftUI
@@ -55,10 +55,9 @@ struct HomeActionRow: View {
     let onPledge: () -> Void
     let onMeditate: () -> Void
     let onReset: () -> Void
-    let onMelius: () -> Void
     
     var body: some View {
-        HStack(spacing: 20) {
+        HStack(spacing: 30) {
             HomeActionButton(
                 title: pledgeActive ? "Pledged" : "Pledge",
                 iconName: "hand.raised.fill",
@@ -78,13 +77,6 @@ struct HomeActionRow: View {
                 iconName: "arrow.counterclockwise.circle.fill",
                 isActive: false,
                 action: onReset
-            )
-            
-            HomeActionButton(
-                title: "Melius",
-                iconName: "figure.stand",
-                isActive: false,
-                action: onMelius
             )
         }
         .padding(.horizontal)

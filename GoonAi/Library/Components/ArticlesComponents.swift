@@ -188,19 +188,6 @@ struct ArticleDetailView: View {
                         }
                         
                         Spacer()
-                        
-                        if !article.isCompleted {
-                            Button {
-                                viewModel.markArticleComplete(article.id)
-                            } label: {
-                                Text("Mark complete?")
-                                    .font(.caption)
-                                    .foregroundColor(.cyan)
-                                    .padding(.horizontal, 16)
-                                    .padding(.vertical, 8)
-                                    .background(Capsule().fill(.ultraThinMaterial))
-                            }
-                        }
                     }
                     .padding(.horizontal)
                     .padding(.top)

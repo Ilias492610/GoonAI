@@ -37,13 +37,13 @@ struct CommunityView: View {
                         Circle()
                             .fill(
                                 LinearGradient(
-                                    colors: [.cyan, .blue],
+                                    colors: [Color(red: 0.7, green: 0.5, blue: 1.0), Color(red: 0.5, green: 0.3, blue: 0.9)],
                                     startPoint: .topLeading,
                                     endPoint: .bottomTrailing
                                 )
                             )
                             .frame(width: 80, height: 80)
-                            .shadow(color: .cyan.opacity(0.5), radius: 20, x: 0, y: 10)
+                            .shadow(color: Color(red: 0.6, green: 0.4, blue: 1.0).opacity(0.5), radius: 20, x: 0, y: 10)
                         
                         Image(systemName: "message.fill")
                             .font(.system(size: 36))
@@ -78,12 +78,12 @@ struct CommunityView: View {
                             RoundedRectangle(cornerRadius: 16, style: .continuous)
                                 .fill(
                                     LinearGradient(
-                                        colors: [.cyan, .blue],
+                                        colors: [Color(red: 0.7, green: 0.5, blue: 1.0), Color(red: 0.5, green: 0.3, blue: 0.9)],
                                         startPoint: .leading,
                                         endPoint: .trailing
                                     )
                                 )
-                                .shadow(color: .cyan.opacity(0.4), radius: 15, x: 0, y: 8)
+                                .shadow(color: Color(red: 0.6, green: 0.4, blue: 1.0).opacity(0.4), radius: 15, x: 0, y: 8)
                         )
                     }
                 }

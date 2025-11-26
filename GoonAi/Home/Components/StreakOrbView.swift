@@ -14,126 +14,145 @@ struct StreakOrbView: View {
     let onTap: () -> Void
     
     @State private var animateGlow = false
+    @State private var rotation: Double = 0
     
     var body: some View {
         ZStack {
-            // Next tier ghost orb (background)
-            if let next = nextTier {
-                Circle()
-                    .fill(
-                        LinearGradient(
-                            colors: [
-                                Color.white.opacity(0.1),
-                                Color.white.opacity(0.05)
-                            ],
-                            startPoint: .topLeading,
-                            endPoint: .bottomTrailing
-                        )
-                    )
-                    .frame(width: 180, height: 180)
-                    .blur(radius: 20)
-                    .offset(x: 80, y: -20)
-                    .overlay(
-                        VStack(spacing: 4) {
-                            Text(next.name)
-                                .font(.caption)
-                                .foregroundColor(.white.opacity(0.5))
-                            Text("\(next.minDays) days")
-                                .font(.caption2)
-                                .foregroundColor(.white.opacity(0.4))
-                        }
-                        .offset(x: 80, y: 80)
-                    )
-            }
-            
-            // Main current tier orb
-            VStack(spacing: 0) {
-                ZStack {
-                    // Outer glow
-                    Circle()
-                        .fill(
-                            RadialGradient(
-                                colors: [
-                                    Color.white.opacity(0.4),
-                                    Color.white.opacity(0.0)
-                                ],
-                                center: .center,
-                                startRadius: 80,
-                                endRadius: 120
-                            )
-                        )
-                        .frame(width: 240, height: 240)
-                        .opacity(animateGlow ? 1.0 : 0.5)
-                    
-                    // Main orb with metallic gradient
-                    Circle()
-                        .fill(
-                            AngularGradient(
-                                colors: [
-                                    Color(red: 0.8, green: 0.85, blue: 0.9),
-                                    Color(red: 0.9, green: 0.92, blue: 0.95),
-                                    Color(red: 0.75, green: 0.8, blue: 0.88),
-                                    Color(red: 0.85, green: 0.88, blue: 0.92),
-                                    Color(red: 0.8, green: 0.85, blue: 0.9)
-                                ],
-                                center: .center,
-                                angle: .degrees(animateGlow ? 360 : 0)
-                            )
-                        )
-                        .frame(width: 200, height: 200)
-                        .overlay(
-                            // Subtle radial gradient overlay for depth
-                            RadialGradient(
-                                colors: [
-                                    Color.white.opacity(0.6),
-                                    Color.clear,
-                                    Color.black.opacity(0.2)
-                                ],
-                                center: .topLeading,
-                                startRadius: 20,
-                                endRadius: 150
-                            )
-                        )
-                        .shadow(color: Color.white.opacity(0.3), radius: 20, x: 0, y: 0)
-                    
-                    // Inner highlight
-                    Circle()
-                        .fill(
-                            RadialGradient(
-                                colors: [
-                                    Color.white.opacity(0.8),
-                                    Color.white.opacity(0.0)
-                                ],
-                                center: .topLeading,
-                                startRadius: 0,
-                                endRadius: 100
-                            )
-                        )
-                        .frame(width: 200, height: 200)
-                        .blur(radius: 10)
-                }
-                
-                // Streak info below orb
-                VStack(spacing: 8) {
-                    Text(currentTier.name)
-                        .font(.title2)
-                        .fontWeight(.bold)
-                        .foregroundColor(.white)
-                    
-                    Text("\(currentDays) days")
-                        .font(.title3)
-                        .foregroundColor(.white.opacity(0.8))
-                }
-                .padding(.top, 20)
-            }
+            glowHalo
+            baseSphere
+            animatedSpectrum
+            specularHighlights
         }
-        .onTapGesture {
-            onTap()
-        }
+        .frame(width: 240, height: 240)
+        .padding(.vertical, 30)
         .onAppear {
-            withAnimation(.easeInOut(duration: 4.0).repeatForever(autoreverses: true)) {
+            withAnimation(.easeInOut(duration: 4.5).repeatForever(autoreverses: true)) {
                 animateGlow = true
             }
+            withAnimation(.linear(duration: 12).repeatForever(autoreverses: false)) {
+                rotation = 360
+            }
+        }
+    }
+}
+
+private extension StreakOrbView {
+    var glowHalo: some View {
+        Circle()
+            .fill(
+                RadialGradient(
+                    colors: [
+                        Color.white.opacity(0.35),
+                        Color.white.opacity(0.0)
+                    ],
+                    center: .center,
+                    startRadius: 60,
+                    endRadius: 170
+                )
+            )
+            .scaleEffect(animateGlow ? 1.15 : 1.0)
+            .opacity(animateGlow ? 0.9 : 0.6)
+    }
+    
+    var baseSphere: some View {
+        Circle()
+            .fill(
+                LinearGradient(
+                    colors: [
+                        Color(red: 0.93, green: 0.97, blue: 1.0),
+                        Color(red: 0.78, green: 0.86, blue: 1.0)
+                    ],
+                    startPoint: .topLeading,
+                    endPoint: .bottomTrailing
+                )
+            )
+            .frame(width: 210, height: 210)
+            .overlay(
+                Circle()
+                    .strokeBorder(Color.white.opacity(0.4), lineWidth: 1.5)
+                    .blur(radius: 0.3)
+            )
+            .shadow(color: Color.white.opacity(0.4), radius: 30)
+    }
+    
+    var animatedSpectrum: some View {
+        Circle()
+            .fill(
+                AngularGradient(
+                    colors: [
+                        Color(red: 0.94, green: 0.99, blue: 1.0),
+                        Color(red: 0.77, green: 0.86, blue: 1.0),
+                        Color(red: 0.78, green: 0.73, blue: 0.99),
+                        Color(red: 0.94, green: 0.99, blue: 1.0)
+                    ],
+                    center: .center,
+                    angle: .degrees(rotation)
+                )
+            )
+            .frame(width: 200, height: 200)
+            .overlay(
+                Circle()
+                    .strokeBorder(
+                        AngularGradient(
+                            colors: [
+                                Color.white.opacity(0.15),
+                                Color.white.opacity(0.5),
+                                Color.white.opacity(0.15)
+                            ],
+                            center: .center,
+                            angle: .degrees(rotation)
+                        ),
+                        lineWidth: 8
+                    )
+                    .blur(radius: 18)
+                    .opacity(0.8)
+                    .blendMode(.screen)
+                    .clipShape(Circle())
+            )
+            .overlay(
+                Circle()
+                    .fill(
+                        RadialGradient(
+                            colors: [Color.white.opacity(0.9), Color.white.opacity(0.0)],
+                            center: .topLeading,
+                            startRadius: 0,
+                            endRadius: 160
+                        )
+                    )
+                    .blur(radius: 25)
+                    .clipShape(Circle())
+                    .opacity(0.9)
+            )
+    }
+    
+    var specularHighlights: some View {
+        ZStack {
+            Circle()
+                .strokeBorder(Color.white.opacity(0.4), lineWidth: 2)
+                .blur(radius: 6)
+                .blendMode(.screen)
+                .frame(width: 215, height: 215)
+            
+            Circle()
+                .trim(from: 0, to: 0.55)
+                .stroke(
+                    LinearGradient(
+                        colors: [Color.white.opacity(0.0), Color.white.opacity(0.7)],
+                        startPoint: .leading,
+                        endPoint: .trailing
+                    ),
+                    style: StrokeStyle(lineWidth: 10, lineCap: .round)
+                )
+                .frame(width: 190, height: 190)
+                .rotationEffect(.degrees(rotation / 1.5))
+                .blur(radius: 3)
+                .blendMode(.screen)
+            
+            Circle()
+                .fill(Color.white.opacity(0.1))
+                .frame(width: 140, height: 140)
+                .blur(radius: 30)
+                .blendMode(.screen)
         }
     }
 }

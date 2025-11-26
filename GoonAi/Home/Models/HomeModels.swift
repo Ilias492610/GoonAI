@@ -153,7 +153,7 @@ struct ChecklistState: Codable {
     var items: [ChecklistItem]
     
     init(items: [ChecklistItem] = ChecklistItem.defaultItems) {
-        self.items = items
+        self.items = ChecklistItem.normalizedItems(from: items)
     }
 }
 
@@ -163,6 +163,7 @@ struct ChecklistItem: Codable, Identifiable {
     var description: String
     var iconName: String
     var isCompleted: Bool
+    var hasLaunched: Bool = false
     var actionType: ActionType
     
     enum ActionType: String, Codable {
@@ -174,6 +175,10 @@ struct ChecklistItem: Codable, Identifiable {
     }
     
     static var defaultItems: [ChecklistItem] {
+        templateItems
+    }
+    
+    private static var templateItems: [ChecklistItem] {
         [
             ChecklistItem(
                 id: "notifications",
@@ -181,15 +186,8 @@ struct ChecklistItem: Codable, Identifiable {
                 description: "Get daily notifications that inspire you to stay strong. Click here to enable.",
                 iconName: "bell.fill",
                 isCompleted: false,
+                hasLaunched: false,
                 actionType: .enableNotifications
-            ),
-            ChecklistItem(
-                id: "tree",
-                title: "Plant Life Tree",
-                description: "Grow your tree the more days you stay off porn. Click here to plant.",
-                iconName: "leaf.fill",
-                isCompleted: false,
-                actionType: .plantTree
             ),
             ChecklistItem(
                 id: "community",
@@ -197,6 +195,7 @@ struct ChecklistItem: Codable, Identifiable {
                 description: "We have an exclusive chat for members on Telegram. Click here to join.",
                 iconName: "person.3.fill",
                 isCompleted: false,
+                hasLaunched: false,
                 actionType: .joinCommunity
             ),
             ChecklistItem(
@@ -205,17 +204,20 @@ struct ChecklistItem: Codable, Identifiable {
                 description: "Stop pesky websites from causing you to relapse with the NoGoon blocker. Click here to enable.",
                 iconName: "shield.fill",
                 isCompleted: false,
+                hasLaunched: false,
                 actionType: .enableBlocker
-            ),
-            ChecklistItem(
-                id: "post",
-                title: "Help & learn from others",
-                description: "Create a useful post for the community to see. Click here to create.",
-                iconName: "square.and.pencil",
-                isCompleted: false,
-                actionType: .createPost
             )
         ]
+    }
+    
+    static func normalizedItems(from storedItems: [ChecklistItem]) -> [ChecklistItem] {
+        let lookup = Dictionary(uniqueKeysWithValues: storedItems.map { ($0.id, $0) })
+        return templateItems.compactMap { template in
+            if let stored = lookup[template.id], !stored.isCompleted {
+                return stored
+            }
+            return template
+        }
     }
 }
 
@@ -286,11 +288,13 @@ enum HomeSheetType: Identifiable {
     case relapseCheckIn
     case relapseFeeling
     case relapseCommunityStats
+    case urgeSupport
     case journalAdd
     case quittingReason
     case dailyCheckIn
     case contentBlocker
     case panicButton
+    case meditation
     
     var id: String {
         switch self {
@@ -302,11 +306,13 @@ enum HomeSheetType: Identifiable {
         case .relapseCheckIn: return "relapseCheckIn"
         case .relapseFeeling: return "relapseFeeling"
         case .relapseCommunityStats: return "relapseCommunityStats"
+        case .urgeSupport: return "urgeSupport"
         case .journalAdd: return "journalAdd"
         case .quittingReason: return "quittingReason"
         case .dailyCheckIn: return "dailyCheckIn"
         case .contentBlocker: return "contentBlocker"
         case .panicButton: return "panicButton"
+        case .meditation: return "meditation"
         }
     }
 }

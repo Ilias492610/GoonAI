@@ -9,16 +9,12 @@ import SwiftUI
 
 struct SettingsView: View {
     @Environment(\.dismiss) private var dismiss
+    @Environment(\.openURL) private var openURL
     @ObservedObject var viewModel: ProfileViewModel
     
     @State private var showEditProfile = false
     @State private var showNotifications = false
     @State private var showSupport = false
-    @State private var showFeedback = false
-    @State private var showContactUs = false
-    @State private var showEarn = false
-    @State private var showSubscription = false
-    @State private var showMore = false
     
     var body: some View {
         ZStack {
@@ -27,10 +23,6 @@ struct SettingsView: View {
             VStack(spacing: 0) {
                 // Top bar
                 HStack {
-                    Button(action: { dismiss() }) {
-                        GlassBackButton(action: { dismiss() })
-                    }
-                    
                     Spacer()
                     
                     Text("Settings")
@@ -38,9 +30,16 @@ struct SettingsView: View {
                         .foregroundColor(.white)
                     
                     Spacer()
-                    
-                    Color.clear.frame(width: 44)
                 }
+                .overlay(
+                    Button(action: { dismiss() }) {
+                        Image(systemName: "xmark")
+                            .font(.system(size: 18, weight: .semibold))
+                            .foregroundColor(.white)
+                            .frame(width: 44, height: 44)
+                    },
+                    alignment: .leading
+                )
                 .padding(.horizontal, 20)
                 .padding(.top, 20)
                 
@@ -61,60 +60,6 @@ struct SettingsView: View {
                         SettingsRow(icon: "questionmark.circle.fill", iconColor: .purple, title: "Support") {
                             showSupport = true
                         }
-                        
-                        Divider().background(Color.white.opacity(0.2))
-                        
-                        SettingsRow(icon: "megaphone.fill", iconColor: .blue, title: "Give Feedback") {
-                            showFeedback = true
-                        }
-                        
-                        Divider().background(Color.white.opacity(0.2))
-                        
-                        SettingsRow(icon: "envelope.fill", iconColor: .pink, title: "Contact us") {
-                            showContactUs = true
-                        }
-                        
-                        Divider().background(Color.white.opacity(0.2))
-                        
-                        SettingsRow(icon: "dollarsign.circle.fill", iconColor: .green, title: "Earn") {
-                            showEarn = true
-                        }
-                        
-                        Divider().background(Color.white.opacity(0.2))
-                        
-                        SettingsRow(icon: "gearshape.fill", iconColor: .yellow, title: "Manage Subscription") {
-                            showSubscription = true
-                        }
-                        
-                        Divider().background(Color.white.opacity(0.2))
-                        
-                        SettingsRow(icon: "ellipsis.circle.fill", iconColor: .gray, title: "More") {
-                            showMore = true
-                        }
-                        
-                        Divider().background(Color.white.opacity(0.2))
-                        
-                        SettingsRow(icon: "globe", iconColor: .white, title: "Visit Website") {
-                            viewModel.openURL("https://nogoon.app")
-                        }
-                        
-                        Divider().background(Color.white.opacity(0.2))
-                        
-                        SettingsRow(icon: "camera.fill", iconColor: .pink, title: "Follow on Instagram") {
-                            viewModel.openURL("https://instagram.com/nogoon")
-                        }
-                        
-                        Divider().background(Color.white.opacity(0.2))
-                        
-                        SettingsRow(icon: "play.circle.fill", iconColor: .white, title: "Follow on TikTok") {
-                            viewModel.openURL("https://tiktok.com/@nogoon")
-                        }
-                        
-                        Divider().background(Color.white.opacity(0.2))
-                        
-                        SettingsRow(icon: "bird.fill", iconColor: .cyan, title: "Follow on Twitter") {
-                            viewModel.openURL("https://twitter.com/nogoon")
-                        }
                     }
                     .padding(.horizontal, 20)
                     .padding(.top, 20)
@@ -129,21 +74,6 @@ struct SettingsView: View {
         }
         .sheet(isPresented: $showSupport) {
             SupportView(viewModel: viewModel)
-        }
-        .sheet(isPresented: $showFeedback) {
-            FeedbackView(viewModel: viewModel)
-        }
-        .sheet(isPresented: $showContactUs) {
-            ContactUsView()
-        }
-        .sheet(isPresented: $showEarn) {
-            EarnView(viewModel: viewModel)
-        }
-        .sheet(isPresented: $showSubscription) {
-            SubscriptionView(viewModel: viewModel)
-        }
-        .sheet(isPresented: $showMore) {
-            MoreView(viewModel: viewModel)
         }
     }
 }
@@ -161,10 +91,6 @@ struct NotificationsView: View {
             VStack(spacing: 0) {
                 // Top bar
                 HStack {
-                    Button(action: { dismiss() }) {
-                        GlassBackButton(action: { dismiss() })
-                    }
-                    
                     Spacer()
                     
                     Text("Notifications")
@@ -172,9 +98,16 @@ struct NotificationsView: View {
                         .foregroundColor(.white)
                     
                     Spacer()
-                    
-                    Color.clear.frame(width: 44)
                 }
+                .overlay(
+                    Button(action: { dismiss() }) {
+                        Image(systemName: "xmark")
+                            .font(.system(size: 18, weight: .semibold))
+                            .foregroundColor(.white)
+                            .frame(width: 44, height: 44)
+                    },
+                    alignment: .leading
+                )
                 .padding(.horizontal, 20)
                 .padding(.top, 20)
                 
@@ -185,7 +118,6 @@ struct NotificationsView: View {
                             .font(.title3)
                             .fontWeight(.semibold)
                             .foregroundColor(.white)
-                            .padding(.top, 20)
                         
                         VStack(spacing: 4) {
                             SettingsToggleRow(title: "Enable notifications", isOn: $viewModel.notificationsEnabled)
@@ -204,7 +136,7 @@ struct NotificationsView: View {
                             .font(.title3)
                             .fontWeight(.semibold)
                             .foregroundColor(.white)
-                            .padding(.top, 20)
+                            .padding(.top, 10)
                         
                         Button(action: {
                             viewModel.clearAllNotifications()
@@ -229,6 +161,7 @@ struct NotificationsView: View {
                         }
                     }
                     .padding(.horizontal, 20)
+                    .padding(.top, 20)
                 }
             }
         }
@@ -239,6 +172,7 @@ struct NotificationsView: View {
 
 struct SupportView: View {
     @Environment(\.dismiss) private var dismiss
+    @Environment(\.openURL) private var openURL
     @ObservedObject var viewModel: ProfileViewModel
     
     var body: some View {
@@ -248,10 +182,6 @@ struct SupportView: View {
             VStack(spacing: 0) {
                 // Top bar
                 HStack {
-                    Button(action: { dismiss() }) {
-                        GlassBackButton(action: { dismiss() })
-                    }
-                    
                     Spacer()
                     
                     Text("Support")
@@ -259,15 +189,24 @@ struct SupportView: View {
                         .foregroundColor(.white)
                     
                     Spacer()
-                    
-                    Color.clear.frame(width: 44)
                 }
+                .overlay(
+                    Button(action: { dismiss() }) {
+                        Image(systemName: "xmark")
+                            .font(.system(size: 18, weight: .semibold))
+                            .foregroundColor(.white)
+                            .frame(width: 44, height: 44)
+                    },
+                    alignment: .leading
+                )
                 .padding(.horizontal, 20)
                 .padding(.top, 20)
                 
                 VStack(spacing: 4) {
                     Button(action: {
-                        // TODO: Navigate to bug report
+                        if let url = URL(string: "mailto:info@nogooon.com?subject=Bug%20Report") {
+                            openURL(url)
+                        }
                     }) {
                         HStack {
                             Text("Report a bug")
@@ -286,7 +225,9 @@ struct SupportView: View {
                     Divider().background(Color.white.opacity(0.2))
                     
                     Button(action: {
-                        // TODO: Navigate to FAQ
+                        if let url = URL(string: "https://goonaiapp.com/#faq") {
+                            openURL(url)
+                        }
                     }) {
                         HStack {
                             Text("FAQ")
@@ -305,18 +246,41 @@ struct SupportView: View {
                     Divider().background(Color.white.opacity(0.2))
                     
                     Button(action: {
-                        // TODO: Navigate to contact
+                        if let url = URL(string: "mailto:info@nogooon.com?subject=Contact%20Us") {
+                            openURL(url)
+                        }
                     }) {
                         HStack {
                             Text("Contact us")
                                 .font(.body)
-                                .foregroundColor(.red)
+                                .foregroundColor(.white)
                             
                             Spacer()
                             
                             Image(systemName: "chevron.right")
                                 .font(.system(size: 14, weight: .semibold))
-                                .foregroundColor(.red.opacity(0.5))
+                                .foregroundColor(.white.opacity(0.5))
+                        }
+                        .padding(.vertical, 16)
+                    }
+                    
+                    Divider().background(Color.white.opacity(0.2))
+                    
+                    Button(action: {
+                        if let url = URL(string: "mailto:info@nogooon.com?subject=Feedback") {
+                            openURL(url)
+                        }
+                    }) {
+                        HStack {
+                            Text("Give Feedback")
+                                .font(.body)
+                                .foregroundColor(.white)
+                            
+                            Spacer()
+                            
+                            Image(systemName: "chevron.right")
+                                .font(.system(size: 14, weight: .semibold))
+                                .foregroundColor(.white.opacity(0.5))
                         }
                         .padding(.vertical, 16)
                     }

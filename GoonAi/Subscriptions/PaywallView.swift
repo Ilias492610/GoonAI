@@ -9,6 +9,7 @@ import SwiftUI
 #if canImport(SuperwallKit)
 import SuperwallKit
 #endif
+import UserNotifications
 
 struct PaywallView: View {
     @AppStorage("name") private var userName: String = ""

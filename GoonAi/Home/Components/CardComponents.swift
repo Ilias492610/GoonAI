@@ -11,33 +11,58 @@ import SwiftUI
 
 struct BrainRewiringCardView: View {
     let progress: Int
+    let onTap: () -> Void
     
     var body: some View {
-        HStack {
-            Text("Brain Rewiring")
-                .font(.headline)
-                .foregroundColor(.white)
-            
-            Spacer()
-            
-            ZStack(alignment: .leading) {
-                // Background track
-                RoundedRectangle(cornerRadius: 10)
-                    .fill(Color.white.opacity(0.2))
-                    .frame(width: 150, height: 8)
+        Button(action: onTap) {
+            HStack(spacing: 16) {
+                VStack(alignment: .leading, spacing: 6) {
+                    Text("Brain Rewiring")
+                        .font(.headline)
+                        .foregroundColor(.white)
+                    Text("Track the new neural pathways you're forming.")
+                        .font(.caption)
+                        .foregroundColor(.white.opacity(0.7))
+                }
                 
-                // Progress fill
-                RoundedRectangle(cornerRadius: 10)
-                    .fill(Color.white)
-                    .frame(width: 150 * CGFloat(progress) / 100.0, height: 8)
+                Spacer()
+                
+                ZStack {
+                    Circle()
+                        .stroke(Color.white.opacity(0.15), lineWidth: 8)
+                        .frame(width: 70, height: 70)
+                    Circle()
+                        .trim(from: 0, to: CGFloat(progress) / 100)
+                        .stroke(
+                            AngularGradient(
+                                colors: [Color.cyan, Color.purple, Color.cyan],
+                                center: .center
+                            ),
+                            style: StrokeStyle(lineWidth: 8, lineCap: .round)
+                        )
+                        .rotationEffect(.degrees(-90))
+                        .frame(width: 70, height: 70)
+                    Text("\(progress)%")
+                        .font(.headline)
+                        .foregroundColor(.white)
+                }
             }
-            
-            Text("\(progress)%")
-                .font(.headline)
-                .foregroundColor(.white)
-                .frame(width: 45, alignment: .trailing)
+            .padding()
+            .contentShape(RoundedRectangle(cornerRadius: 20, style: .continuous))
         }
-        .padding()
+        .buttonStyle(.plain)
+        .background(
+            RoundedRectangle(cornerRadius: 20, style: .continuous)
+                .fill(Color.white.opacity(0.08))
+                .overlay(
+                    LinearGradient(
+                        colors: [Color.white.opacity(0.08), Color.white.opacity(0.02)],
+                        startPoint: .topLeading,
+                        endPoint: .bottomTrailing
+                    )
+                    .clipShape(RoundedRectangle(cornerRadius: 20, style: .continuous))
+                )
+        )
         .glassEffect()
         .padding(.horizontal)
     }
@@ -77,7 +102,7 @@ struct QuoteCardView: View {
 
 struct ChecklistCardView: View {
     @Binding var items: [ChecklistItem]
-    let onItemAction: (ChecklistItem.ActionType) -> Void
+    let onItemAction: (ChecklistItem) -> Void
     
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
@@ -92,7 +117,7 @@ struct ChecklistCardView: View {
             
             ForEach($items) { $item in
                 ChecklistItemRow(item: $item) {
-                    onItemAction(item.actionType)
+                    onItemAction(item)
                 }
             }
         }
@@ -124,6 +149,12 @@ struct ChecklistItemRow: View {
                         .font(.caption)
                         .foregroundColor(.white.opacity(0.7))
                         .fixedSize(horizontal: false, vertical: true)
+                    
+                    if item.hasLaunched {
+                        Text("Tap again to mark as done")
+                            .font(.caption2)
+                            .foregroundColor(.green)
+                    }
                 }
                 
                 Spacer()
@@ -149,19 +180,152 @@ struct ChecklistItemRow: View {
 // MARK: - Journal Card
 
 struct JournalCardView: View {
+    let entries: [JournalEntry]
     let onAddNew: () -> Void
+    let onDelete: (JournalEntry) -> Void
+    private let maxVisibleEntries = 3
+    
+    private static let journalDateFormatter: DateFormatter = {
+        let formatter = DateFormatter()
+        formatter.dateStyle = .medium
+        formatter.timeStyle = .short
+        return formatter
+    }()
     
     var body: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            Text("Journal")
-                .font(.headline)
-                .foregroundColor(.white)
+        VStack(alignment: .leading, spacing: 16) {
+            HStack {
+                Text("Journal")
+                    .font(.headline)
+                    .foregroundColor(.white)
+                Spacer()
+                Button(action: onAddNew) {
+                    Image(systemName: "plus.circle.fill")
+                        .font(.title2)
+                        .foregroundColor(.white)
+                }
+            }
+            
+            if entries.isEmpty {
+                emptyState
+            } else {
+                entryList
+            }
             
             Button(action: onAddNew) {
                 HStack {
-                    Image(systemName: "plus.circle.fill")
+                    Image(systemName: "square.and.pencil")
+                        .font(.headline)
+                    Text("Write a new entry")
+                        .font(.headline)
+                }
+                .foregroundColor(.white)
+                .frame(maxWidth: .infinity)
+                .frame(height: 48)
+                .background(
+                    RoundedRectangle(cornerRadius: 15, style: .continuous)
+                        .fill(Color.blue.opacity(0.6))
+                )
+            }
+        }
+        .padding()
+        .glassEffect()
+        .padding(.horizontal)
+    }
+    
+    @ViewBuilder
+    private var emptyState: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Text("No entries yet.")
+                .font(.subheadline)
+                .foregroundColor(.white)
+            Text("Tap the button below to capture how you're feeling today.")
+                .font(.caption)
+                .foregroundColor(.white.opacity(0.7))
+        }
+    }
+    
+    private var entryList: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            ForEach(entries.prefix(maxVisibleEntries), id: \.id) { entry in
+                HStack(alignment: .top, spacing: 12) {
+                    VStack(alignment: .leading, spacing: 6) {
+                        Text(entry.title.isEmpty ? "Untitled Entry" : entry.title)
+                            .font(.headline)
+                            .foregroundColor(.white)
+                        Text(Self.journalDateFormatter.string(from: entry.createdAt))
+                            .font(.caption2)
+                            .foregroundColor(.white.opacity(0.6))
+                        Text(entry.body)
+                            .font(.caption)
+                            .foregroundColor(.white.opacity(0.85))
+                            .lineLimit(3)
+                    }
+                    
+                    Spacer(minLength: 8)
+                    
+                    Button(role: .destructive) {
+                        onDelete(entry)
+                    } label: {
+                        Image(systemName: "trash")
+                            .font(.body)
+                            .foregroundColor(.red.opacity(0.9))
+                            .padding(8)
+                            .background(
+                                Circle()
+                                    .fill(Color.white.opacity(0.1))
+                            )
+                    }
+                    .buttonStyle(.plain)
+                }
+                .padding(12)
+                .background(
+                    RoundedRectangle(cornerRadius: 15, style: .continuous)
+                        .fill(Color.white.opacity(0.08))
+                )
+            }
+        }
+    }
+}
+
+// MARK: - Why I'm Quitting Card
+
+struct WhyQuittingCardView: View {
+    let reasonText: String
+    let lastUpdated: Date?
+    let onEdit: () -> Void
+    
+    private var formattedDate: String {
+        guard let lastUpdated else { return "" }
+        let formatter = DateFormatter()
+        formatter.dateStyle = .medium
+        formatter.timeStyle = .short
+        return formatter.string(from: lastUpdated)
+    }
+    
+    var body: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            Text("Why I'm Quitting")
+                .font(.headline)
+                .foregroundColor(.white)
+            
+            Text(reasonText.isEmpty ? "Tap edit to write your deepest why." : reasonText)
+                .font(.body)
+                .foregroundColor(.white.opacity(0.9))
+                .lineLimit(4)
+                .frame(maxWidth: .infinity, alignment: .leading)
+            
+            if !formattedDate.isEmpty {
+                Text("Updated \(formattedDate)")
+                    .font(.caption2)
+                    .foregroundColor(.white.opacity(0.6))
+            }
+            
+            Button(action: onEdit) {
+                HStack {
+                    Image(systemName: "pencil.circle.fill")
                         .font(.title3)
-                    Text("Add New")
+                    Text("Edit Reason")
                         .font(.headline)
                 }
                 .foregroundColor(.white)
@@ -169,7 +333,7 @@ struct JournalCardView: View {
                 .frame(height: 50)
                 .background(
                     RoundedRectangle(cornerRadius: 15, style: .continuous)
-                        .fill(Color.blue.opacity(0.6))
+                        .fill(Color.purple.opacity(0.6))
                 )
             }
         }
@@ -227,30 +391,33 @@ struct PanicButtonView: View {
     
     var body: some View {
         Button(action: action) {
-            HStack {
+            HStack(spacing: 14) {
                 Image(systemName: "exclamationmark.circle.fill")
-                    .font(.title2)
+                    .font(.system(size: 20, weight: .bold))
+                    .foregroundColor(.white)
+                
                 Text("Panic Button")
-                    .font(.headline)
-                    .fontWeight(.bold)
+                    .font(.system(size: 18, weight: .bold, design: .rounded))
+                    .foregroundColor(.white)
             }
-            .foregroundColor(.white)
             .frame(maxWidth: .infinity)
-            .frame(height: 60)
+            .frame(height: 56)
             .background(
-                RoundedRectangle(cornerRadius: 20, style: .continuous)
+                RoundedRectangle(cornerRadius: 28, style: .continuous)
                     .fill(
                         LinearGradient(
-                            colors: [Color.red, Color.red.opacity(0.8)],
-                            startPoint: .leading,
-                            endPoint: .trailing
+                            colors: [
+                                Color(red: 0.95, green: 0.26, blue: 0.21),
+                                Color(red: 0.78, green: 0.0, blue: 0.18)
+                            ],
+                            startPoint: .topLeading,
+                            endPoint: .bottomTrailing
                         )
                     )
+                    .shadow(color: Color(red: 0.7, green: 0.04, blue: 0.18).opacity(0.45), radius: 20, x: 0, y: 10)
             )
-            .shadow(color: Color.red.opacity(0.4), radius: 15, x: 0, y: 8)
         }
-        .padding(.horizontal)
-        .padding(.bottom, 10)
+        .buttonStyle(.plain)
     }
 }
 

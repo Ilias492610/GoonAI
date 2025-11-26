@@ -7,6 +7,26 @@
 
 import SwiftUI
 
+// MARK: - Supporting Types
+
+enum DimensionType: String, CaseIterable, Identifiable {
+    case strength = "Strength"
+    case agility = "Agility"
+    case intelligence = "Intelligence"
+    case endurance = "Endurance"
+    case charisma = "Charisma"
+    case luck = "Luck"
+    
+    var id: String { rawValue }
+}
+
+struct DimensionStat: Identifiable {
+    let id = UUID()
+    let type: DimensionType
+    /// Normalized value from 0.0 to 1.0
+    let value: Double
+}
+
 struct RadarChartView: View {
     let dimensions: [DimensionStat]
     let selectedDimension: DimensionType?
