@@ -17,14 +17,23 @@ struct NoGoonCalculatingView: View {
     
     var body: some View {
         ZStack {
-            // Match CalAI white background pattern
-            Color.white
-                .ignoresSafeArea()
+            // Dark blue gradient background (matching other onboarding pages)
+            LinearGradient(
+                colors: [
+                    Color(red: 0.05, green: 0.1, blue: 0.2),
+                    Color(red: 0.08, green: 0.15, blue: 0.25)
+                ],
+                startPoint: .top,
+                endPoint: .bottom
+            )
+            .ignoresSafeArea()
+            
+            StarryBackgroundView()
             
             VStack {
                 ZStack {
                     Circle()
-                        .stroke(Color(.systemGray6).opacity(0.65), lineWidth: 15)
+                        .stroke(Color.white.opacity(0.15), lineWidth: 15)
 
                     Circle()
                         .trim(from: 0, to: progress)
@@ -36,7 +45,7 @@ struct NoGoonCalculatingView: View {
                     Text("\(Int(progress * 100))%")
                         .font(.largeTitle)
                         .fontWeight(.bold)
-                        .foregroundColor(.primary)
+                        .foregroundColor(.white)
                         .contentTransition(.numericText())
                 }
                 .frame(width: 200, height: 200)
@@ -45,12 +54,12 @@ struct NoGoonCalculatingView: View {
                 Text("Calculating")
                     .font(.title)
                     .fontWeight(.bold)
-                    .foregroundColor(.primary)
+                    .foregroundColor(.white)
 
                 Text(subtitleForProgress(progress))
                     .font(.headline)
                     .fontWeight(.semibold)
-                    .foregroundColor(Color.gray)
+                    .foregroundColor(.white.opacity(0.6))
                     .padding(.top, 5)
                     .multilineTextAlignment(.center)
             }

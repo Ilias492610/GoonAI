@@ -14,138 +14,139 @@ struct NoGoonFinalQuestionView: View {
     
     var body: some View {
         ZStack {
-            // Gradient background (matching QUITTR)
+            // Dark blue gradient background (matching NoGoonQuizView)
             LinearGradient(
                 colors: [
-                    Color(red: 0.2, green: 0.6, blue: 0.8),
-                    Color(red: 0.1, green: 0.3, blue: 0.6)
+                    Color(red: 0.05, green: 0.1, blue: 0.2),
+                    Color(red: 0.08, green: 0.15, blue: 0.25)
                 ],
-                startPoint: .topLeading,
-                endPoint: .bottomTrailing
+                startPoint: .top,
+                endPoint: .bottom
             )
             .ignoresSafeArea()
             
             StarryBackgroundView()
             
             VStack(spacing: 0) {
-                // Logo header (matching OnboardingView pattern)
-                ZStack {
-                    HStack {
-                        Button {
-                            UIImpactFeedbackGenerator(style: .light).impactOccurred()
-                            onBack()
-                        } label: {
-                            Image(systemName: "chevron.left")
-                                .font(.system(size: 20, weight: .semibold))
-                                .foregroundColor(.primary)
-                                .padding(.leading)
-                        }
-                        
-                        Spacer()
-                    }
-                    
-                    Text("NOGOON")
-                        .font(.system(size: 24, weight: .heavy, design: .rounded))
-                        .tracking(2)
-                        .foregroundColor(.primary)
-                }
-                .padding(.vertical, 10)
-                
-                // Progress Bar (full - matching OnboardingView pattern)
-                ProgressBar(progress: 1.0)
-                    .padding(.horizontal, 20)
-                    .padding(.top, 24)
-                
-                // Card (matching OnboardingView pattern)
-                VStack(spacing: 16) {
-                    Text("What's your name?")
-                        .font(.system(size: 28, weight: .bold))
-                        .multilineTextAlignment(.leading)
-                        .frame(maxWidth: .infinity, alignment: .leading)
-                    
-                    Text("So we can personalize your plan.")
-                        .font(.body)
-                        .foregroundStyle(.secondary)
-                        .frame(maxWidth: .infinity, alignment: .leading)
-                    
-                    // Name TextField (matching OnboardingView pattern)
-                    TextField("Enter your name", text: $quizState.userName)
-                        .textFieldStyle(.roundedBorder)
-                        .padding(.vertical, 6)
-                }
-                .padding(20)
-                .background(
-                    RoundedRectangle(cornerRadius: 20)
-                        .fill(Color(.systemBackground))
-                        .shadow(color: .black.opacity(0.06), radius: 20, x: 0, y: 10)
-                )
-                .padding(.horizontal, 20)
-                .padding(.top, 20)
-                
-                // Age Card
-                VStack(spacing: 16) {
-                    Text("How old are you?")
-                        .font(.system(size: 28, weight: .bold))
-                        .multilineTextAlignment(.leading)
-                        .frame(maxWidth: .infinity, alignment: .leading)
-                    
-                    Text("Age helps us estimate daily targets more accurately.")
-                        .font(.body)
-                        .foregroundStyle(.secondary)
-                        .frame(maxWidth: .infinity, alignment: .leading)
-                    
-                    // Age TextField (matching OnboardingView pattern)
-                    TextField("Enter your age", text: $quizState.userAge)
-                        .keyboardType(.numberPad)
-                        .textFieldStyle(.roundedBorder)
-                        .padding(.vertical, 6)
-                }
-                .padding(20)
-                .background(
-                    RoundedRectangle(cornerRadius: 20)
-                        .fill(Color(.systemBackground))
-                        .shadow(color: .black.opacity(0.06), radius: 20, x: 0, y: 10)
-                )
-                .padding(.horizontal, 20)
-                .padding(.top, 12)
-                
-                Spacer()
-                
-                // Navigation (matching OnboardingView pattern)
-                HStack(spacing: 12) {
+                // Top bar with back button and progress bar
+                HStack(spacing: 16) {
                     Button {
                         UIImpactFeedbackGenerator(style: .light).impactOccurred()
                         onBack()
                     } label: {
-                        HStack {
-                            Image(systemName: "chevron.left")
-                            Text("Back")
-                        }
-                        .frame(maxWidth: .infinity)
+                        Image(systemName: "arrow.left")
+                            .font(.system(size: 20, weight: .medium))
+                            .foregroundColor(.white)
                     }
-                    .buttonStyle(SecondaryButtonStyle())
-
-                    Button {
-                        UIImpactFeedbackGenerator(style: .light).impactOccurred()
-                        // Save to UserDefaults (matching OnboardingView pattern)
-                        UserDefaults.standard.set(quizState.userName, forKey: "name")
-                        if let age = Int(quizState.userAge) {
-                            UserDefaults.standard.set(age, forKey: "age")
+                    
+                    // Progress bar (full)
+                    GeometryReader { geometry in
+                        ZStack(alignment: .leading) {
+                            // Background
+                            RoundedRectangle(cornerRadius: 4)
+                                .fill(Color.white.opacity(0.2))
+                                .frame(height: 6)
+                            
+                            // Progress (full)
+                            RoundedRectangle(cornerRadius: 4)
+                                .fill(
+                                    LinearGradient(
+                                        colors: [Color.cyan, Color.blue],
+                                        startPoint: .leading,
+                                        endPoint: .trailing
+                                    )
+                                )
+                                .frame(width: geometry.size.width, height: 6)
                         }
-                        AnalyticsManager.shared.updateUserAttributes(attributes: ["name": quizState.userName, "age": quizState.userAge])
-                        onComplete()
-                    } label: {
-                        HStack {
-                            Text("Finish")
-                            Image(systemName: "chevron.right")
-                        }
-                        .frame(maxWidth: .infinity)
                     }
-                    .buttonStyle(PrimaryButtonStyle())
-                    .disabled(quizState.userName.isEmpty || quizState.userAge.isEmpty)
+                    .frame(height: 6)
                 }
                 .padding(.horizontal, 20)
-                .padding(.vertical, 16)
+                .padding(.top, 20)
+                
+                // Title
+                Text("Finally")
+                    .font(.system(size: 32, weight: .bold, design: .rounded))
+                    .foregroundColor(.white)
+                    .padding(.top, 40)
+                
+                // Subtitle
+                Text("A little more about you")
+                    .font(.system(size: 18, weight: .medium))
+                    .foregroundColor(.white.opacity(0.9))
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .padding(.horizontal, 24)
+                    .padding(.top, 24)
+                
+                // Name TextField
+                TextField("", text: $quizState.userName, prompt: Text("Your name").foregroundColor(.white.opacity(0.5)))
+                    .font(.system(size: 17, weight: .medium))
+                    .foregroundColor(.white)
+                    .padding(.horizontal, 20)
+                    .padding(.vertical, 18)
+                    .background(
+                        RoundedRectangle(cornerRadius: 30)
+                            .fill(Color.white.opacity(0.1))
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 30)
+                                    .stroke(Color.white.opacity(0.15), lineWidth: 1)
+                            )
+                    )
+                    .padding(.horizontal, 24)
+                    .padding(.top, 24)
+                
+                // Age TextField
+                TextField("", text: $quizState.userAge, prompt: Text("Your age").foregroundColor(.white.opacity(0.5)))
+                    .font(.system(size: 17, weight: .medium))
+                    .foregroundColor(.white)
+                    .keyboardType(.numberPad)
+                    .onChange(of: quizState.userAge) { newValue in
+                        // Filter out non-numeric characters
+                        let filtered = newValue.filter { $0.isNumber }
+                        if filtered != newValue {
+                            quizState.userAge = filtered
+                        }
+                    }
+                    .padding(.horizontal, 20)
+                    .padding(.vertical, 18)
+                    .background(
+                        RoundedRectangle(cornerRadius: 30)
+                            .fill(Color.white.opacity(0.1))
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 30)
+                                    .stroke(Color.white.opacity(0.15), lineWidth: 1)
+                            )
+                    )
+                    .padding(.horizontal, 24)
+                    .padding(.top, 16)
+                
+                // Complete Quiz Button
+                Button {
+                    UIImpactFeedbackGenerator(style: .light).impactOccurred()
+                    // Save to UserDefaults
+                    UserDefaults.standard.set(quizState.userName, forKey: "name")
+                    if let age = Int(quizState.userAge) {
+                        UserDefaults.standard.set(age, forKey: "age")
+                    }
+                    AnalyticsManager.shared.updateUserAttributes(attributes: ["name": quizState.userName, "age": quizState.userAge])
+                    onComplete()
+                } label: {
+                    Text("Complete Quiz")
+                        .font(.system(size: 17, weight: .semibold))
+                        .foregroundColor(.black)
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 18)
+                        .background(
+                            RoundedRectangle(cornerRadius: 30)
+                                .fill(Color.white)
+                        )
+                }
+                .padding(.horizontal, 24)
+                .padding(.top, 24)
+                .disabled(quizState.userName.isEmpty || quizState.userAge.isEmpty)
+                .opacity(quizState.userName.isEmpty || quizState.userAge.isEmpty ? 0.5 : 1.0)
+                
+                Spacer()
             }
         }
     }

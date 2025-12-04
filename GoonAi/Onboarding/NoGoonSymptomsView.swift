@@ -1,4 +1,4 @@
-//
+                                        //
 //  NoGoonSymptomsView.swift
 //  GoonAi
 //
@@ -17,95 +17,121 @@ struct NoGoonSymptomsView: View {
     }
     
     var body: some View {
-        VStack(spacing: 0) {
-            // Logo header (matching OnboardingView pattern)
-            ZStack {
-                HStack {
-                    Button {
-                        UIImpactFeedbackGenerator(style: .light).impactOccurred()
-                        onBack()
-                    } label: {
-                        Image(systemName: "chevron.left")
-                            .font(.system(size: 20, weight: .semibold))
-                            .foregroundColor(.primary)
-                            .padding(.leading)
+        ZStack {
+            // Dark blue gradient background
+            LinearGradient(
+                colors: [
+                    Color(red: 0.05, green: 0.1, blue: 0.2),
+                    Color(red: 0.08, green: 0.15, blue: 0.25)
+                ],
+                startPoint: .top,
+                endPoint: .bottom
+            )
+            .ignoresSafeArea()
+            
+            StarryBackgroundView()
+            
+            VStack(spacing: 0) {
+                // Header with back button and title
+                ZStack {
+                    HStack {
+                        Button {
+                            UIImpactFeedbackGenerator(style: .light).impactOccurred()
+                            onBack()
+                        } label: {
+                            Image(systemName: "chevron.left")
+                                .font(.system(size: 18, weight: .semibold))
+                                .foregroundColor(.white)
+                                .frame(width: 44, height: 44)
+                                .background(
+                                    Circle()
+                                        .fill(Color.white.opacity(0.15))
+                                )
+                        }
+                        Spacer()
                     }
-
-                    Spacer()
+                    
+                    Text("Symptoms")
+                        .font(.system(size: 18, weight: .semibold))
+                        .foregroundColor(.white)
                 }
-
-                Text("NOGOON")
-                    .font(.system(size: 24, weight: .heavy, design: .rounded))
-                    .tracking(2)
-                    .foregroundColor(.primary)
-            }
-            .padding(.vertical, 10)
-
-            ScrollView(showsIndicators: false) {
-                VStack(spacing: 20) {
-                    // Title (matching OnboardingView pattern)
-                    VStack(alignment: .leading, spacing: 8) {
-                        Text("Symptoms Checklist")
-                            .font(.largeTitle)
-                            .fontWeight(.bold)
-                            .foregroundColor(.black)
-
-                        Text("Excessive porn use can have negative impacts psychologically. Select any symptoms you've experienced:")
-                            .font(.subheadline)
-                            .fontWeight(.medium)
-                            .foregroundColor(.secondary)
-                    }
-                    .frame(maxWidth: .infinity, alignment: .leading)
+                .padding(.horizontal, 20)
+                .padding(.top, 10)
+                
+                // Red-orange info banner
+                Text("Excessive porn use can have negative impacts psychologically.")
+                    .font(.system(size: 16, weight: .medium))
+                    .foregroundColor(.white)
                     .padding(.horizontal, 20)
-                    .padding(.top, 20)
-
-                    // Symptoms by Category
-                    ForEach(SymptomCategory.allCases, id: \.self) { category in
-                        if let symptoms = symptomsByCategory[category], !symptoms.isEmpty {
-                            VStack(alignment: .leading, spacing: 12) {
-                                Text(category.rawValue)
-                                    .font(.headline)
-                                    .fontWeight(.bold)
-                                    .foregroundColor(.white)
-                                    .padding(.horizontal, 20)
-
-                                ForEach(symptoms) { symptom in
-                                    SymptomCheckboxRow(
-                                        symptom: symptom,
-                                        isSelected: quizState.selectedSymptoms.contains(symptom.id)
-                                    ) {
-                                        if quizState.selectedSymptoms.contains(symptom.id) {
-                                            quizState.selectedSymptoms.remove(symptom.id)
-                                        } else {
-                                            quizState.selectedSymptoms.insert(symptom.id)
+                    .padding(.vertical, 16)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .background(
+                        RoundedRectangle(cornerRadius: 16)
+                            .fill(Color(red: 1.0, green: 0.4, blue: 0.2))
+                    )
+                    .padding(.horizontal, 20)
+                    .padding(.top, 16)
+                
+                // Select symptoms text
+                Text("Select any symptoms below:")
+                    .font(.system(size: 17, weight: .medium))
+                    .foregroundColor(.white)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .padding(.horizontal, 24)
+                    .padding(.top, 24)
+                
+                // Scrollable symptoms list with button at end
+                ScrollView(showsIndicators: false) {
+                    VStack(spacing: 12) {
+                        ForEach(SymptomCategory.allCases, id: \.self) { category in
+                            if let symptoms = symptomsByCategory[category], !symptoms.isEmpty {
+                                VStack(alignment: .leading, spacing: 10) {
+                                    Text(category.rawValue)
+                                        .font(.system(size: 15, weight: .medium))
+                                        .foregroundColor(.white.opacity(0.7))
+                                        .padding(.horizontal, 24)
+                                        .padding(.top, 8)
+                                    
+                                    ForEach(symptoms) { symptom in
+                                        SymptomCheckboxRow(
+                                            symptom: symptom,
+                                            isSelected: quizState.selectedSymptoms.contains(symptom.id)
+                                        ) {
+                                            if quizState.selectedSymptoms.contains(symptom.id) {
+                                                quizState.selectedSymptoms.remove(symptom.id)
+                                            } else {
+                                                quizState.selectedSymptoms.insert(symptom.id)
+                                            }
                                         }
                                     }
                                 }
                             }
                         }
+                        
+                        // Reboot my brain button (red-orange) at end of scroll
+                        Button {
+                            UIImpactFeedbackGenerator(style: .light).impactOccurred()
+                            AnalyticsManager.shared.trackEvent(eventName: "symptoms_selected", properties: ["count": quizState.selectedSymptoms.count])
+                            onComplete()
+                        } label: {
+                            Text("Reboot my brain")
+                                .font(.system(size: 17, weight: .semibold))
+                                .foregroundColor(.white)
+                                .frame(maxWidth: .infinity)
+                                .padding(.vertical, 18)
+                                .background(
+                                    RoundedRectangle(cornerRadius: 30)
+                                        .fill(Color(red: 1.0, green: 0.4, blue: 0.2))
+                                )
+                        }
+                        .padding(.horizontal, 24)
+                        .padding(.top, 20)
+                        .padding(.bottom, 40)
                     }
-
-                    // Continue Button (matching OnboardingView pattern)
-                    Button(action: {
-                        UIImpactFeedbackGenerator(style: .light).impactOccurred()
-                        AnalyticsManager.shared.trackEvent(eventName: "symptoms_selected", properties: ["count": quizState.selectedSymptoms.count])
-                        onComplete()
-                    }) {
-                        Text("Continue")
-                            .frame(maxWidth: .infinity)
-                            .padding()
-                            .background(Color.black)
-                            .foregroundColor(.white)
-                            .cornerRadius(25)
-                            .fontWeight(.semibold)
-                    }
-                    .padding(.horizontal, 20)
-                    .padding(.top, 20)
-                    .padding(.bottom, 50)
+                    .padding(.top, 8)
                 }
             }
         }
-        .background(Color.white)
     }
 }
 
@@ -116,60 +142,51 @@ struct SymptomCheckboxRow: View {
     let isSelected: Bool
     let action: () -> Void
     
+    // Red-orange color
+    private let redOrange = Color(red: 1.0, green: 0.4, blue: 0.2)
+    
     var body: some View {
         Button {
             UIImpactFeedbackGenerator(style: .light).impactOccurred()
             action()
         } label: {
-            ZStack {
-                RoundedRectangle(cornerRadius: 35, style: .continuous)
-                    .fill(getCategoryColor(for: symptom.category).opacity(isSelected ? 0.5 : (UITraitCollection.current.userInterfaceStyle == .dark ? 0.3 : 0.1)))
-                    .frame(height: 65)
-                    .shadow(color: Color.black.opacity(0.3), radius: 1)
-                
-                HStack {
-                    Image(systemName: symptom.icon)
-                        .foregroundColor(.white)
-                        .frame(width: 30, height: 30)
-                        .background(getCategoryColor(for: symptom.category))
-                        .cornerRadius(15)
-                        .padding(.trailing, 5)
-                    
-                    Text(symptom.text)
-                        .foregroundColor(.primary)
-                        .font(.headline)
-                        .fontWeight(.medium)
-                        .multilineTextAlignment(.leading)
-                    
-                    Spacer()
+            HStack(spacing: 12) {
+                // Checkbox circle
+                ZStack {
+                    Circle()
+                        .stroke(isSelected ? redOrange : Color.white.opacity(0.3), lineWidth: 2)
+                        .frame(width: 28, height: 28)
                     
                     if isSelected {
-                        Image(systemName: "checkmark.circle.fill")
-                            .resizable()
-                            .scaledToFit()
-                            .frame(width: 22)
-                            .symbolRenderingMode(.palette)
-                            .foregroundStyle(.black.opacity(0.7), .white)
-                    } else {
-                        Image(systemName: "circle.fill")
-                            .resizable()
-                            .scaledToFit()
-                            .frame(width: 22)
-                            .foregroundColor(Color(.systemGray6))
+                        Circle()
+                            .fill(redOrange)
+                            .frame(width: 28, height: 28)
+                        
+                        Image(systemName: "checkmark")
+                            .font(.system(size: 14, weight: .bold))
+                            .foregroundColor(.white)
                     }
                 }
-                .padding()
+                
+                // Symptom text with bold keywords
+                Text(symptom.text)
+                    .font(.system(size: 16, weight: .medium))
+                    .foregroundColor(.white)
+                    .multilineTextAlignment(.leading)
+                
+                Spacer()
             }
+            .padding(.horizontal, 16)
+            .padding(.vertical, 16)
+            .background(
+                RoundedRectangle(cornerRadius: 20)
+                    .fill(isSelected ? redOrange.opacity(0.25) : Color.white.opacity(0.08))
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 20)
+                            .stroke(isSelected ? redOrange.opacity(0.4) : Color.white.opacity(0.1), lineWidth: 1)
+                    )
+            )
         }
-        .padding(.horizontal, 10)
-    }
-    
-    private func getCategoryColor(for category: SymptomCategory) -> Color {
-        switch category {
-        case .physical: return .red
-        case .social: return .blue
-        case .mental: return .purple
-        case .faith: return .green
-        }
+        .padding(.horizontal, 20)
     }
 }

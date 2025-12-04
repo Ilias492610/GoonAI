@@ -5,6 +5,13 @@ struct QTRCard: View {
     @State private var offset: CGFloat = 1000
     @State private var rotation: Double = 89.9
       @State private var opacity: Double = 0
+    
+    private var freeSinceDate: String {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "M/d"
+        return formatter.string(from: Date())
+    }
+    
     var body: some View {
         ZStack {
                   // Background with gradient image
@@ -25,12 +32,17 @@ struct QTRCard: View {
                       // Top part of the card
                       VStack(alignment: .leading, spacing: 16) {
                           HStack {
-                              Text("Cal AI Card")
-                                  .font(.headline)
-                                  .fontWeight(.bold)
-                                  .foregroundColor(Color.white)
+                              // NGN Logo
+                              ZStack {
+                                  Circle()
+                                      .stroke(Color.white, lineWidth: 2)
+                                      .frame(width: 44, height: 44)
+                                  Text("NGN")
+                                      .font(.system(size: 10, weight: .bold))
+                                      .foregroundColor(.white)
+                              }
                               Spacer()
-                              Image(systemName: "book")
+                              Image(systemName: "person.crop.circle.badge")
                                   .renderingMode(.template)
                                   .resizable()
                                   .scaledToFit()
@@ -42,11 +54,11 @@ struct QTRCard: View {
                           Spacer()
                           
                           VStack(alignment: .leading, spacing: 4) {
-                              Text(LocalizedStringKey("Lbs Lost"))
+                              Text(LocalizedStringKey("Active Streak"))
                                   .foregroundColor(.white.opacity(0.8))
                                   .font(.custom("DMSans-Medium", size: 12))
                               
-                              Text("0")
+                              Text("0 days")
                                   .foregroundColor(.white)
                                   .font(.custom("DMSans-Medium", size: 26))
                           }
@@ -57,27 +69,16 @@ struct QTRCard: View {
                       
                       // Bottom part of the card
                       HStack {
-                          if !name.isEmpty {
-                              VStack(alignment: .leading) {
-                                  Text(LocalizedStringKey("Name"))
-                                      .foregroundColor(.white.opacity(0.8))
-                                      .font(.custom("DMSans-Medium", size: 12))
-                                  Text("Alex")
-                                      .foregroundColor(.white)
-                                      .font(.custom("DMSans-Medium", size: 16))
-                              }
-                          }
-                          
-                              Spacer()
-                          
-                          VStack(alignment: .trailing) {
-                              Text(LocalizedStringKey("Joined in"))
+                          VStack(alignment: .leading) {
+                              Text(LocalizedStringKey("Free since"))
                                   .foregroundColor(.white.opacity(0.8))
                                   .font(.custom("DMSans-Medium", size: 12))
-                              Text("2025")
+                              Text(freeSinceDate)
                                   .foregroundColor(.white)
                                   .font(.custom("DMSans-Medium", size: 16))
                           }
+                          
+                              Spacer()
                       }
                       .padding(24)
                       .background(LinearGradient(gradient: Gradient(colors: [Color(hex: "3E3C3D"), Color(hex: "2C2C2C")]), startPoint: .leading, endPoint: .trailing))

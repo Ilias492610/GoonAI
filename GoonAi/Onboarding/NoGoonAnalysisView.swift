@@ -12,13 +12,9 @@ struct NoGoonAnalysisView: View {
     let onContinue: () -> Void
     let onBack: () -> Void
     
-    private var userPercentage: Int {
-        quizState.dependencyPercentage
-    }
-    
-    private var averagePercentage: Int {
-        quizState.averagePercentage
-    }
+    // Fixed values matching the mock design
+    private let userPercentage: Int = 64
+    private let averagePercentage: Int = 40
     
     private var comparisonPercentage: Int {
         userPercentage - averagePercentage
@@ -26,166 +22,154 @@ struct NoGoonAnalysisView: View {
     
     var body: some View {
         ZStack {
+            // Dark blue gradient background
+            LinearGradient(
+                colors: [
+                    Color(red: 0.05, green: 0.1, blue: 0.2),
+                    Color(red: 0.08, green: 0.15, blue: 0.25)
+                ],
+                startPoint: .top,
+                endPoint: .bottom
+            )
+            .ignoresSafeArea()
+            
             StarryBackgroundView()
             
-            ScrollView(showsIndicators: false) {
-                VStack(spacing: 32) {
-                    // Top Section
-                    VStack(spacing: 16) {
-                        HStack {
-                            Button(action: onBack) {
-                                Image(systemName: "chevron.left")
-                                    .font(.system(size: 20, weight: .semibold))
-                                    .foregroundColor(.white)
-                                    .frame(width: 44, height: 44)
-                            }
-                            
-                            Spacer()
-                        }
-                        .padding(.horizontal, 20)
-                        .padding(.top, 60)
-                        
-                        HStack {
-                            Text("Analysis Complete")
-                                .font(.title)
-                                .fontWeight(.bold)
-                                .foregroundColor(.white)
-                            
-                            Image(systemName: "checkmark.circle.fill")
-                                .font(.title2)
-                                .foregroundColor(.green)
-                        }
-                        .padding(.top, 20)
-                    }
-                    
-                    // Message
-                    VStack(spacing: 12) {
-                        Text("We've got some news to break to you...")
-                            .font(.body)
-                            .foregroundColor(.white.opacity(0.8))
-                            .multilineTextAlignment(.center)
-                        
-                        Text("Your responses indicate a clear dependance on internet porn*")
-                            .font(.title3)
-                            .fontWeight(.semibold)
+            VStack(spacing: 0) {
+                // Back button
+                HStack {
+                    Button {
+                        UIImpactFeedbackGenerator(style: .light).impactOccurred()
+                        onBack()
+                    } label: {
+                        Image(systemName: "chevron.left")
+                            .font(.system(size: 18, weight: .semibold))
                             .foregroundColor(.white)
-                            .multilineTextAlignment(.center)
-                            .padding(.horizontal, 30)
-                    }
-                    .padding(.top, 20)
-                    
-                    // Bar Chart
-                    HStack(alignment: .bottom, spacing: 60) {
-                        // User's Score
-                        VStack(spacing: 12) {
-                            ZStack(alignment: .bottom) {
-                                RoundedRectangle(cornerRadius: 20, style: .continuous)
-                                    .fill(Color.white.opacity(0.1))
-                                    .frame(width: 100, height: 400)
-                                
-                                RoundedRectangle(cornerRadius: 20, style: .continuous)
-                                    .fill(
-                                        LinearGradient(
-                                            colors: [.red, .orange],
-                                            startPoint: .bottom,
-                                            endPoint: .top
-                                        )
-                                    )
-                                    .frame(width: 100, height: CGFloat(userPercentage) / 100.0 * 400)
-                                
-                                Text("\(userPercentage)%")
-                                    .font(.title)
-                                    .fontWeight(.bold)
-                                    .foregroundColor(.white)
-                                    .padding(.bottom, CGFloat(userPercentage) / 100.0 * 400 / 2)
-                            }
-                            
-                            Text("Your Score")
-                                .font(.subheadline)
-                                .fontWeight(.medium)
-                                .foregroundColor(.white)
-                        }
-                        
-                        // Average Score
-                        VStack(spacing: 12) {
-                            ZStack(alignment: .bottom) {
-                                RoundedRectangle(cornerRadius: 20, style: .continuous)
-                                    .fill(Color.white.opacity(0.1))
-                                    .frame(width: 100, height: 400)
-                                
-                                RoundedRectangle(cornerRadius: 20, style: .continuous)
-                                    .fill(
-                                        LinearGradient(
-                                            colors: [.green, .cyan],
-                                            startPoint: .bottom,
-                                            endPoint: .top
-                                        )
-                                    )
-                                    .frame(width: 100, height: CGFloat(averagePercentage) / 100.0 * 400)
-                                
-                                Text("\(averagePercentage)%")
-                                    .font(.title)
-                                    .fontWeight(.bold)
-                                    .foregroundColor(.white)
-                                    .padding(.bottom, CGFloat(averagePercentage) / 100.0 * 400 / 2)
-                            }
-                            
-                            Text("Average")
-                                .font(.subheadline)
-                                .fontWeight(.medium)
-                                .foregroundColor(.white)
-                        }
-                    }
-                    .padding(.vertical, 30)
-                    
-                    // Comparison Text
-                    HStack(spacing: 8) {
-                        Text("\(abs(comparisonPercentage))%")
-                            .font(.title2)
-                            .fontWeight(.bold)
-                            .foregroundColor(.red)
-                        
-                        Text(comparisonPercentage > 0 ? "higher dependence on porn" : "lower dependence on porn")
-                            .font(.body)
-                            .foregroundColor(.white.opacity(0.9))
-                        
-                        Image(systemName: "arrow.up.right")
-                            .font(.title3)
-                            .foregroundColor(.red)
-                    }
-                    .padding(.horizontal, 30)
-                    
-                    // Disclaimer
-                    Text("* This result is an indication only, not a medical diagnosis.")
-                        .font(.caption)
-                        .foregroundColor(.white.opacity(0.6))
-                        .padding(.horizontal, 40)
-                        .padding(.top, 20)
-                    
-                    // Check Symptoms Button
-                    Button(action: onContinue) {
-                        Text("Check your symptoms")
-                            .font(.headline)
-                            .fontWeight(.bold)
-                            .foregroundColor(.white)
-                            .frame(maxWidth: .infinity)
-                            .padding(.vertical, 18)
+                            .frame(width: 44, height: 44)
                             .background(
-                                RoundedRectangle(cornerRadius: 30, style: .continuous)
-                                    .fill(
-                                        LinearGradient(
-                                            colors: [.blue, .cyan],
-                                            startPoint: .leading,
-                                            endPoint: .trailing
-                                        )
-                                    )
-                                    .shadow(color: .cyan.opacity(0.4), radius: 15, x: 0, y: 10)
+                                Circle()
+                                    .fill(Color.white.opacity(0.15))
                             )
                     }
-                    .padding(.horizontal, 30)
-                    .padding(.top, 20)
-                    .padding(.bottom, 50)
+                    Spacer()
                 }
+                .padding(.horizontal, 20)
+                .padding(.top, 10)
+                
+                // Analysis Complete Header
+                HStack(spacing: 8) {
+                    Text("Analysis Complete")
+                        .font(.system(size: 28, weight: .bold, design: .rounded))
+                        .foregroundColor(.white)
+                    
+                    Image(systemName: "checkmark.circle.fill")
+                        .font(.system(size: 24))
+                        .foregroundColor(.green)
+                }
+                .padding(.top, 30)
+                
+                // Message
+                VStack(spacing: 12) {
+                    Text("We've got some news to break to you...")
+                        .font(.system(size: 17))
+                        .foregroundColor(.white.opacity(0.8))
+                    
+                    Text("Your responses indicate a clear\ndependance on internet porn*")
+                        .font(.system(size: 18, weight: .semibold))
+                        .foregroundColor(.white)
+                        .multilineTextAlignment(.center)
+                }
+                .padding(.top, 16)
+                
+                Spacer()
+                
+                // Bar Chart
+                HStack(alignment: .bottom, spacing: 30) {
+                    // User's Score - 64% (taller bar)
+                    VStack(spacing: 8) {
+                        ZStack(alignment: .top) {
+                            RoundedRectangle(cornerRadius: 8, style: .continuous)
+                                .fill(Color.red)
+                                .frame(width: 80, height: 280) // Fixed height for 64%
+                            
+                            Text("64%")
+                                .font(.system(size: 20, weight: .bold))
+                                .foregroundColor(.white)
+                                .padding(.top, 12)
+                        }
+                        
+                        Text("Your Score")
+                            .font(.system(size: 14, weight: .medium))
+                            .foregroundColor(.white)
+                    }
+                    
+                    // Average Score - 40% (shorter bar)
+                    VStack(spacing: 8) {
+                        ZStack(alignment: .top) {
+                            RoundedRectangle(cornerRadius: 8, style: .continuous)
+                                .fill(Color.green)
+                                .frame(width: 80, height: 175) // Fixed height for 40%
+                            
+                            Text("40%")
+                                .font(.system(size: 20, weight: .bold))
+                                .foregroundColor(.white)
+                                .padding(.top, 12)
+                        }
+                        
+                        Text("Average")
+                            .font(.system(size: 14, weight: .medium))
+                            .foregroundColor(.white)
+                    }
+                }
+                
+                Spacer()
+                
+                // Comparison Text
+                HStack(spacing: 4) {
+                    Text("64%")
+                        .font(.system(size: 17, weight: .bold))
+                        .foregroundColor(.red)
+                    
+                    Text("higher dependence on porn")
+                        .font(.system(size: 17))
+                        .foregroundColor(.white.opacity(0.9))
+                    
+                    Image(systemName: "chart.line.downtrend.xyaxis")
+                        .font(.system(size: 16))
+                        .foregroundColor(.white.opacity(0.6))
+                }
+                .padding(.top, 20)
+                
+                // Disclaimer
+                Text("* This result is an indication only, not a medical diagnosis.")
+                    .font(.system(size: 13))
+                    .foregroundColor(.white.opacity(0.5))
+                    .padding(.top, 16)
+                
+                // Check Symptoms Button
+                Button {
+                    UIImpactFeedbackGenerator(style: .light).impactOccurred()
+                    onContinue()
+                } label: {
+                    Text("Check your symptoms")
+                        .font(.system(size: 17, weight: .semibold))
+                        .foregroundColor(.white)
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 18)
+                        .background(
+                            RoundedRectangle(cornerRadius: 30, style: .continuous)
+                                .fill(
+                                    LinearGradient(
+                                        colors: [Color(red: 0.2, green: 0.4, blue: 0.9), Color(red: 0.3, green: 0.5, blue: 1.0)],
+                                        startPoint: .leading,
+                                        endPoint: .trailing
+                                    )
+                                )
+                        )
+                }
+                .padding(.horizontal, 24)
+                .padding(.top, 16)
+                .padding(.bottom, 40)
             }
         }
     }

@@ -12,39 +12,34 @@ import SwiftUI
             SubRootView()
         } else {
             ZStack {
-                // Gradient background
+                // Gradient background (matching QUITTR)
                 LinearGradient(
-                    gradient: Gradient(colors: [Color.cyan.opacity(0.3), Color.blue.opacity(0.4)]),
+                    colors: [
+                        Color(red: 0.2, green: 0.6, blue: 0.8),
+                        Color(red: 0.1, green: 0.3, blue: 0.6)
+                    ],
                     startPoint: .topLeading,
                     endPoint: .bottomTrailing
                 )
                 .ignoresSafeArea()
                 
-                VStack(spacing: 25) {
+                StarryBackgroundView()
+                
+                VStack(spacing: 24) {
                     Spacer()
                     
                     // NoGoon Logo Text
                     Text("NOGOON")
-                        .font(.system(size: 52, weight: .heavy, design: .rounded))
-                        .tracking(6)
+                        .font(.system(size: 42, weight: .heavy, design: .rounded))
+                        .tracking(4)
                         .foregroundColor(.white)
-                        .shadow(color: .black.opacity(0.3), radius: 10, x: 0, y: 5)
-                        .padding(.bottom, -15)
                     
-                    FadingTextView(topLine: "Break free.", bottomLine: "Reclaim your life.")
-                        .font(.system(size: 22, weight: .semibold))
-                        .foregroundColor(.white.opacity(0.9))
-                    
-                    VStack {
-                        if showMedal {
-                            Image(systemName: "heart.circle.fill")
-                                .resizable()
-                                .scaledToFit()
-                                .frame(width: 80, height: 80)
-                                .foregroundStyle(.white.opacity(0.8))
-                        }
+                    VStack(spacing: 16) {
+                        FadingTextView(topLine: "Embrace this pause.", bottomLine: "Reflect before you relapse.")
+                            .font(.title2)
+                            .fontWeight(.semibold)
+                            .foregroundColor(.white)
                     }
-                    .frame(width: 80, height: 80)
                     
                     Spacer()
                 }

@@ -17,159 +17,145 @@ struct NoGoonQuizView: View {
     }
     
     private var progress: Double {
-        Double(quizState.currentQuestionIndex) / Double(max(QuizData.questions.count - 1, 1))
+        Double(quizState.currentQuestionIndex + 1) / Double(QuizData.questions.count)
     }
     
     var body: some View {
         ZStack {
-            // Gradient background (matching QUITTR)
+            // Dark blue gradient background
             LinearGradient(
                 colors: [
-                    Color(red: 0.2, green: 0.6, blue: 0.8),
-                    Color(red: 0.1, green: 0.3, blue: 0.6)
+                    Color(red: 0.05, green: 0.1, blue: 0.2),
+                    Color(red: 0.08, green: 0.15, blue: 0.25)
                 ],
-                startPoint: .topLeading,
-                endPoint: .bottomTrailing
+                startPoint: .top,
+                endPoint: .bottom
             )
             .ignoresSafeArea()
             
             StarryBackgroundView()
             
             VStack(spacing: 0) {
-                // Logo header (matching OnboardingView pattern)
-                ZStack {
-                    HStack {
-                        Button {
-                            UIImpactFeedbackGenerator(style: .light).impactOccurred()
-                            if quizState.currentQuestionIndex > 0 {
-                                withAnimation(.easeInOut) {
-                                    quizState.currentQuestionIndex -= 1
-                                }
-                            } else {
-                                onBack()
+                // Top bar with back button and progress bar
+                HStack(spacing: 16) {
+                    Button {
+                        UIImpactFeedbackGenerator(style: .light).impactOccurred()
+                        if quizState.currentQuestionIndex > 0 {
+                            withAnimation(.easeInOut) {
+                                quizState.currentQuestionIndex -= 1
                             }
-                        } label: {
-                            Image(systemName: "chevron.left")
-                                .font(.system(size: 20, weight: .semibold))
-                                .foregroundColor(.primary)
-                                .padding(.leading)
+                        } else {
+                            onBack()
                         }
-                        
-                        Spacer()
+                    } label: {
+                        Image(systemName: "arrow.left")
+                            .font(.system(size: 20, weight: .medium))
+                            .foregroundColor(.white)
                     }
                     
-                    Text("NOGOON")
-                        .font(.system(size: 24, weight: .heavy, design: .rounded))
-                        .tracking(2)
-                        .foregroundColor(.white)
-                }
-                .padding(.vertical, 10)
-                
-                // Progress Bar (matching OnboardingView pattern)
-                ProgressBar(progress: progress)
-                    .padding(.horizontal, 20)
-                    .padding(.top, 24)
-                
-                // Card (matching OnboardingView pattern)
-                VStack(spacing: 16) {
-                    Text("Question #\(currentQuestion.id)")
-                        .font(.system(size: 28, weight: .bold))
-                        .multilineTextAlignment(.leading)
-                        .frame(maxWidth: .infinity, alignment: .leading)
-                        .foregroundColor(.white)
-                    
-                    Text(currentQuestion.title)
-                        .font(.body)
-                        .foregroundColor(.white.opacity(0.9))
-                        .frame(maxWidth: .infinity, alignment: .leading)
-                    
-                    // Options (matching OnboardingView single choice pattern)
-                    VStack(spacing: 10) {
-                        ForEach(Array(currentQuestion.options.enumerated()), id: \.element.id) { index, option in
-                            let isSelected = quizState.answers[quizState.currentQuestionIndex]?.id == option.id
-                            Button {
-                                UIImpactFeedbackGenerator(style: .light).impactOccurred()
-                                withAnimation {
-                                    quizState.answers[quizState.currentQuestionIndex] = option
-                                }
-                                
-                                // Auto-advance after selection
-                                DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
-                                    advance()
-                                }
-                            } label: {
-                                HStack {
-                                    if let icon = getIconForOption(option, question: currentQuestion) {
-                                        Image(systemName: icon)
-                                            .imageScale(.medium)
-                                            .frame(width: 24)
-                                    }
-                                    
-                                    Text(option.text)
-                                        .fontWeight(.medium)
-                                    Spacer()
-                                    Image(systemName: isSelected ? "checkmark.circle.fill" : "circle")
-                                        .imageScale(.large)
-                                        .symbolRenderingMode(.hierarchical)
-                                }
-                                .padding()
-                                .background(
-                                    RoundedRectangle(cornerRadius: 14)
-                                        .fill(isSelected ? Color.white.opacity(0.3) : Color.white.opacity(0.1))
+                    // Progress bar
+                    GeometryReader { geometry in
+                        ZStack(alignment: .leading) {
+                            // Background
+                            RoundedRectangle(cornerRadius: 4)
+                                .fill(Color.white.opacity(0.2))
+                                .frame(height: 6)
+                            
+                            // Progress
+                            RoundedRectangle(cornerRadius: 4)
+                                .fill(
+                                    LinearGradient(
+                                        colors: [Color.cyan, Color.blue],
+                                        startPoint: .leading,
+                                        endPoint: .trailing
+                                    )
                                 )
-                                .foregroundColor(.white)
-                            }
-                            .buttonStyle(.plain)
+                                .frame(width: geometry.size.width * progress, height: 6)
                         }
                     }
-                    .padding(.top, 8)
+                    .frame(height: 6)
                 }
-                .padding(20)
-                .background(
-                    RoundedRectangle(cornerRadius: 20)
-                        .fill(Color.white.opacity(0.15))
-                )
                 .padding(.horizontal, 20)
                 .padding(.top, 20)
                 
+                // Question title with underline
+                VStack(spacing: 8) {
+                    Text("Question #\(currentQuestion.id)")
+                        .font(.system(size: 32, weight: .bold, design: .rounded))
+                        .foregroundColor(.white)
+                }
+                .padding(.top, 40)
+                
+                // Question text
+                Text(currentQuestion.title)
+                    .font(.system(size: 18, weight: .medium))
+                    .foregroundColor(.white.opacity(0.9))
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .padding(.horizontal, 24)
+                    .padding(.top, 24)
+                
+                // Options
+                VStack(spacing: 16) {
+                    ForEach(Array(currentQuestion.options.enumerated()), id: \.element.id) { index, option in
+                        let isSelected = quizState.answers[quizState.currentQuestionIndex]?.id == option.id
+                        Button {
+                            UIImpactFeedbackGenerator(style: .light).impactOccurred()
+                            withAnimation {
+                                quizState.answers[quizState.currentQuestionIndex] = option
+                            }
+                            
+                            // Auto-advance after selection
+                            DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+                                advance()
+                            }
+                        } label: {
+                            HStack(spacing: 16) {
+                                // Numbered circle
+                                ZStack {
+                                    Circle()
+                                        .fill(Color.cyan)
+                                        .frame(width: 36, height: 36)
+                                    
+                                    Text("\(index + 1)")
+                                        .font(.system(size: 16, weight: .bold))
+                                        .foregroundColor(.white)
+                                }
+                                
+                                Text(option.text)
+                                    .font(.system(size: 17, weight: .medium))
+                                    .foregroundColor(.white)
+                                
+                                Spacer()
+                            }
+                            .padding(.horizontal, 16)
+                            .padding(.vertical, 16)
+                            .background(
+                                RoundedRectangle(cornerRadius: 30)
+                                    .fill(isSelected ? Color.white.opacity(0.25) : Color.white.opacity(0.1))
+                                    .overlay(
+                                        RoundedRectangle(cornerRadius: 30)
+                                            .stroke(isSelected ? Color.cyan.opacity(0.5) : Color.white.opacity(0.15), lineWidth: 1)
+                                    )
+                            )
+                        }
+                        .buttonStyle(.plain)
+                    }
+                }
+                .padding(.horizontal, 24)
+                .padding(.top, 24)
+                
                 Spacer()
                 
-                // Navigation (matching OnboardingView pattern)
-                HStack(spacing: 12) {
-                    Button {
-                        UIImpactFeedbackGenerator(style: .light).impactOccurred()
-                        withAnimation(.easeInOut) {
-                            if quizState.currentQuestionIndex > 0 {
-                                quizState.currentQuestionIndex -= 1
-                            } else {
-                                onBack()
-                            }
-                        }
-                    } label: {
-                        HStack {
-                            Image(systemName: "chevron.left")
-                            Text("Back")
-                        }
-                        .frame(maxWidth: .infinity)
-                    }
-                    .buttonStyle(SecondaryButtonStyle())
-                    .disabled(quizState.currentQuestionIndex == 0)
-
-                    Button {
-                        UIImpactFeedbackGenerator(style: .light).impactOccurred()
-                        advance()
-                    } label: {
-                        HStack {
-                            Text(quizState.currentQuestionIndex == QuizData.questions.count - 1 ? "Finish" : "Continue")
-                            Image(systemName: "chevron.right")
-                        }
-                        .frame(maxWidth: .infinity)
-                    }
-                    .buttonStyle(PrimaryButtonStyle())
-                    .disabled(quizState.answers[quizState.currentQuestionIndex] == nil)
+                // Skip button at bottom
+                Button {
+                    UIImpactFeedbackGenerator(style: .light).impactOccurred()
+                    advance()
+                } label: {
+                    Text("Skip")
+                        .font(.system(size: 17, weight: .medium))
+                        .foregroundColor(.white.opacity(0.7))
                 }
-                .padding(.horizontal, 20)
-                .padding(.vertical, 16)
+                .padding(.bottom, 40)
             }
         }
         .animation(.easeInOut, value: quizState.currentQuestionIndex)

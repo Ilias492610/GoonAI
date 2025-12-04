@@ -12,34 +12,12 @@ import SuperwallKit
 
 struct NoGoonOnboardingFlow: View {
     @StateObject private var quizState = OnboardingQuizState()
-    @State private var currentScreen: OnboardingScreen = .welcome
+    @State private var currentScreen: OnboardingScreen = .profileCard
     let onComplete: () -> Void
     
     var body: some View {
         ZStack {
             switch currentScreen {
-            case .welcome:
-                NoGoonWelcomeView(
-                    onStartQuiz: {
-                        withAnimation {
-                            currentScreen = .reflection
-                        }
-                    },
-                    onAlreadyJoined: {
-                        // TODO: Show login screen
-                        print("Already joined tapped")
-                    }
-                )
-                .transition(.opacity)
-                
-            case .reflection:
-                NoGoonReflectionView {
-                    withAnimation {
-                        currentScreen = .profileCard
-                    }
-                }
-                .transition(.opacity)
-                
             case .profileCard:
                 NoGoonProfileCardView(
                     quizState: quizState,
@@ -49,9 +27,7 @@ struct NoGoonOnboardingFlow: View {
                         }
                     },
                     onBack: {
-                        withAnimation {
-                            currentScreen = .welcome
-                        }
+                        // No back navigation since welcome/reflection are handled by Root/SplashScreen
                     }
                 )
                 .transition(.opacity)
@@ -234,8 +210,6 @@ struct NoGoonOnboardingFlow: View {
 // MARK: - Onboarding Screen Enum
 
 enum OnboardingScreen {
-    case welcome
-    case reflection
     case profileCard
     case quiz
     case finalQuestion

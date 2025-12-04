@@ -17,7 +17,7 @@ struct Root: View {
                                            Text("NOGOON")
                                                .font(.system(size: 32, weight: .heavy, design: .rounded))
                                                .tracking(4)
-                                               .foregroundColor(.black)
+                                               .foregroundColor(.white)
                                                .padding(.bottom, -15)
                                            
                                            
@@ -28,12 +28,12 @@ struct Root: View {
                                                    Text(LocalizedStringKey("Welcome!"))
                                                        .font(.title)
                                                        .fontWeight(.bold)
-                                                       .foregroundColor(.black)
+                                                       .foregroundColor(.white)
                                                        .padding(.bottom, -15)
                                                    Text(LocalizedStringKey("Let's start by finding out if you have a problem with porn"))
                                                        .font(.headline)
                                                        .fontWeight(.semibold)
-                                                       .foregroundColor(.black)
+                                                       .foregroundColor(.white)
                                                        .padding(.trailing, 50)
                                                }
                                                Spacer()
@@ -80,7 +80,19 @@ struct Root: View {
                                        .padding()
                                        .frame(width: geometry.size.width, height: geometry.size.height)
                                    }
-                                   .background(Color(.systemGroupedBackground))
+                                   .background(
+                                       ZStack {
+                                           LinearGradient(
+                                               colors: [
+                                                   Color(red: 0.2, green: 0.6, blue: 0.8),
+                                                   Color(red: 0.1, green: 0.3, blue: 0.6)
+                                               ],
+                                               startPoint: .topLeading,
+                                               endPoint: .bottomTrailing
+                                           )
+                                           StarryBackgroundView()
+                                       }
+                                   )
             .onAppear {
                 AnalyticsManager.shared.trackEvent(eventName: "onboarding_screen_0")
             }
